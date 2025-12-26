@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Webhook } from 'standardwebhooks';
 import { prisma } from '@/lib/prisma';
-import { webhookQueue } from '@/lib/queue';
+import { getWebhookQueue } from '@/lib/queue';
 import { logError, logInfo } from '@/lib/logger';
 
 const webhook = new Webhook(process.env.DODO_PAYMENTS_WEBHOOK_KEY!);
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     };
 
     // 2. Verify signature
-    let payload;
+    let payload: any;
     try {
       payload = webhook.verify(rawPayload, headers);
     } catch (error) {
@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
     });
 
     // 5. Queue for async processing
+    const webhookQueue = getWebhookQueue();
     await webhookQueue.add(
       'process',
       {

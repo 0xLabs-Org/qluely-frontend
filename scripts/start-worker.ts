@@ -1,7 +1,8 @@
 // scripts/start-worker.ts
-import './lib/queue';
+import { initWebhookWorker } from '../lib/queue';
 import { logInfo } from '../lib/logger';
 
+initWebhookWorker();
 logInfo('Webhook worker started');
 
 // Keep process alive

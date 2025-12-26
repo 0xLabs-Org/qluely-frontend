@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MessageSquare, FileText, Eye, Mail } from "lucide-react";
 import { motion } from "motion/react";
 import { useOS } from "@/hooks/useOs";
@@ -64,6 +64,7 @@ export default function QluelyLanding() {
   const [current, setCurrent] = useState(0);
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [autoPlay, setAutoPlay] = useState(true);
   const os = useOS();
 
   const next = () => {
@@ -83,6 +84,13 @@ export default function QluelyLanding() {
       setSubmitted(false);
     }, 3000);
   };
+
+  // Testimonials autoplay
+  useEffect(() => {
+    if (!autoPlay) return;
+    const id = setInterval(() => next(), 5000);
+    return () => clearInterval(id);
+  }, [autoPlay]);
   return (
     <div className="min-h-screen bg-black text-white font-sans selection:bg-[#00D4FF] selection:text-black overflow-x-hidden">
       {/* --- Navigation --- */}
@@ -131,20 +139,107 @@ export default function QluelyLanding() {
             className="flex flex-col items-center gap-4 sm:gap-6 px-4"
           >
             {os}
-            <button
-              className="bg-linear-to-r from-[#7C3AED] to-[#EC4899] text-white px-8 sm:px-12 py-4 sm:py-5 text-lg sm:text-xl rounded-full hover:shadow-[0_0_35px_rgba(124,58,237,0.5)] transition-all transform hover:scale-105 w-full sm:w-auto max-w-xs sm:max-w-none"
-              onClick={() => {
-                const url = ApplicationURL[os as "macOS" | "Linux" | "Windows"];
-                window.open(url);
-              }}
-            >
-              Download for {os}
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-center">
+              <button
+                aria-label={`Download Qluely for ${os}`}
+                className="bg-linear-to-r from-[#7C3AED] to-[#EC4899] text-white px-6 sm:px-10 py-3 sm:py-4 text-lg sm:text-xl rounded-full hover:shadow-[0_0_35px_rgba(124,58,237,0.5)] transition-all transform hover:scale-105 w-full sm:w-auto max-w-xs sm:max-w-none"
+                onClick={() => {
+                  const url = ApplicationURL[os as "macOS" | "Linux" | "Windows"];
+                  window.open(url);
+                }}
+              >
+                Download for {os}
+              </button>
+
+              <button
+                aria-label="Upgrade to Pro"
+                onClick={async () => {
+                  try {
+                    const userId = 'user_123';
+                    const response = await fetch('/api/checkout', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ plan: 'pro', userId }),
+                    });
+                    const data = await response.json();
+                    if (data.checkout_url) {
+                      window.location.href = data.checkout_url;
+                    } else {
+                      console.error('Checkout error:', data);
+                      alert('Error starting checkout');
+                    }
+                  } catch (error: any) {
+                    console.error('Error starting checkout', error);
+                    alert('Error starting checkout: ' + (error?.message || error));
+                  }
+                }}
+                className="bg-white text-[#7C3AED] px-6 py-3 rounded-full border border-[#7C3AED] hover:bg-[#7C3AED]/5 transition-all w-full sm:w-auto max-w-xs"
+              >
+                Upgrade to Pro
+              </button>
+            </div>
 
             <p className="text-[#64748B] text-base sm:text-xl">
               Works with Zoom, Teams, Meet. No traces left behind.
             </p>
           </motion.div>
+        </div>
+      </section>
+
+      {/* --- Testimonials --- */}
+      <section className="py-12 sm:py-16 px-4 sm:px-6 bg-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.h3
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-2xl sm:text-3xl font-semibold text-[#1A1F36] mb-6"
+          >
+            Loved by early adopters
+          </motion.h3>
+
+          <motion.blockquote
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="bg-[#F8F9FA] rounded-2xl p-8 sm:p-10 text-left shadow-sm"
+          >
+            <p className="text-[#1A1F36] text-lg sm:text-xl mb-4">“{testimonials[current].quote}”</p>
+            <footer className="text-sm text-[#64748B]">
+              — <span className="font-medium text-[#111827]">{testimonials[current].author}</span>, {testimonials[current].role}
+            </footer>
+          </motion.blockquote>
+
+          <div className="flex items-center justify-center gap-4 mt-6">
+            <button
+              aria-label="Previous testimonial"
+              onClick={() => { setAutoPlay(false); prev(); }}
+              className="px-3 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50"
+            >
+              ‹
+            </button>
+
+            <div className="flex items-center gap-2">
+              {testimonials.map((_, i) => (
+                <button
+                  key={i}
+                  aria-label={`Go to testimonial ${i + 1}`}
+                  onClick={() => { setAutoPlay(false); setCurrent(i); }}
+                  className={`w-3 h-3 rounded-full ${i === current ? 'bg-[#7C3AED]' : 'bg-gray-300'}`}
+                />
+              ))}
+            </div>
+
+            <button
+              aria-label="Next testimonial"
+              onClick={() => { setAutoPlay(false); next(); }}
+              className="px-3 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50"
+            >
+              ›
+            </button>
+          </div>
         </div>
       </section>
 
@@ -241,10 +336,14 @@ export default function QluelyLanding() {
                 <li>• Email follow-ups</li>
               </ul>
               <button
-                className="w-full bg-gray-200 text-gray-600 px-6 py-3 rounded-full text-lg font-medium"
-                disabled
+                aria-label="Download free Qluely"
+                onClick={() => {
+                  const url = ApplicationURL[os as "macOS" | "Linux" | "Windows"];
+                  window.open(url);
+                }}
+                className="w-full bg-linear-to-r from-[#7C3AED] to-[#EC4899] text-white px-6 py-3 rounded-full text-lg font-medium hover:shadow-[0_0_25px_rgba(124,58,237,0.35)] transition-all transform hover:scale-105"
               >
-                Current Plan
+                Download Free
               </button>
             </motion.div>
 
@@ -353,13 +452,13 @@ export default function QluelyLanding() {
               &copy; {new Date().getFullYear()} Qluely. All rights reserved.
             </p>
             <div className="flex justify-center gap-4 sm:gap-6 mt-3 sm:mt-4 text-[#64748B] text-sm sm:text-base">
-              <a href="#" className="hover:text-[#7C3AED] transition-colors">
+              <a href="#" className="hover:text-[#7C3AED] transition-colors" aria-label="Privacy policy">
                 Privacy
               </a>
-              <a href="#" className="hover:text-[#7C3AED] transition-colors">
+              <a href="#" className="hover:text-[#7C3AED] transition-colors" aria-label="Terms of service">
                 Terms
               </a>
-              <a href="#" className="hover:text-[#7C3AED] transition-colors">
+              <a href="#" className="hover:text-[#7C3AED] transition-colors" aria-label="Contact support">
                 Contact
               </a>
             </div>
