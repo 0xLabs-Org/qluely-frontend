@@ -9,7 +9,7 @@ import { logError, logInfo } from './logger';
 const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
 
 let redisConnection: Redis | null = null;
-function getRedisConnection() {
+export function getRedisConnection() {
   if (!redisConnection) {
     // ioredis must be configured with `maxRetriesPerRequest: null` for BullMQ compatibility
     redisConnection = new Redis(redisUrl, { maxRetriesPerRequest: null as any });
@@ -87,4 +87,24 @@ export function initWebhookWorker() {
   });
 
   return _webhookWorker;
+}
+
+export async function closeWebhookWorker() {
+  try {
+    if (_webhookWorker) {
+      await _webhookWorker.close();
+      _webhookWorker = null;
+    }
+    if (_webhookQueue) {
+      await _webhookQueue.close();
+      _webhookQueue = null;
+    }
+    if (redisConnection) {
+      await redisConnection.quit();
+      redisConnection = null;
+    }
+    logInfo('Webhook worker and queue closed');
+  } catch (err) {
+    logError('Error closing webhook worker/queue:', err);
+  }
 }

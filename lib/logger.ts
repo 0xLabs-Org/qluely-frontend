@@ -1,8 +1,28 @@
 // lib/logger.ts
 export function logInfo(message: string, data?: any) {
-  console.log(`[INFO] ${message}`, data || '');
+  const out = {
+    timestamp: new Date().toISOString(),
+    level: 'info',
+    message,
+    data: data ?? null
+  };
+  try {
+    console.log(JSON.stringify(out));
+  } catch (err) {
+    console.log(out);
+  }
 }
 
 export function logError(message: string, error?: any) {
-  console.error(`[ERROR] ${message}`, error || '');
+  const out = {
+    timestamp: new Date().toISOString(),
+    level: 'error',
+    message,
+    error: error instanceof Error ? { message: error.message, stack: error.stack } : error
+  };
+  try {
+    console.error(JSON.stringify(out));
+  } catch (err) {
+    console.error(out);
+  }
 }

@@ -4,6 +4,7 @@ import { Webhook } from 'standardwebhooks';
 import { prisma } from '@/lib/prisma';
 import { getWebhookQueue } from '@/lib/queue';
 import { logError, logInfo } from '@/lib/logger';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 const webhook = new Webhook(process.env.DODO_PAYMENTS_WEBHOOK_KEY!);
 
@@ -11,41 +12,56 @@ export async function POST(request: NextRequest) {
   try {
     // 1. Get headers & body
     const rawPayload = await request.text();
-    const headers = {
-      'webhook-id': request.headers.get('webhook-id')!,
-      'webhook-signature': request.headers.get('webhook-signature')!,
-      'webhook-timestamp': request.headers.get('webhook-timestamp')!
+    const headerId = request.headers.get('webhook-id');
+    const headerSig = request.headers.get('webhook-signature');
+    const headerTs = request.headers.get('webhook-timestamp');
+
+    const securityHeaders = {
+      'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none';",
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'Referrer-Policy': 'no-referrer'
     };
 
-    // 2. Verify signature
+    if (!headerId || !headerSig || !headerTs) {
+      logError('Webhook missing required headers', { headerId, headerSigPresent: !!headerSig, headerTs });
+      return NextResponse.json({ error: 'Missing webhook headers' }, { status: 400, headers: securityHeaders });
+    }
+
+    // rate limit webhooks per headerId to protect against replay storms
+    const rl = checkRateLimit(`webhook:${headerId}`, 30, 60_000);
+    if (rl.limited) {
+      logError('Webhook rate limit exceeded', { headerId });
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429, headers: securityHeaders });
+    }
+
+    // 2. Quick duplicate check using header id to avoid expensive signature work for duplicates
+    const dup = await prisma.webhookEvent.findUnique({ where: { dodoWebhookId: headerId } });
+    if (dup) {
+      logInfo('Webhook already processed (by header):', headerId);
+      return NextResponse.json({ received: true }, { headers: securityHeaders });
+    }
+
+    // 3. Verify signature
     let payload: any;
     try {
-      payload = webhook.verify(rawPayload, headers);
+      payload = webhook.verify(rawPayload, {
+        'webhook-id': headerId,
+        'webhook-signature': headerSig,
+        'webhook-timestamp': headerTs
+      });
     } catch (error) {
       logError('Webhook signature verification failed:', error);
-      return NextResponse.json(
-        { error: 'Invalid signature' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
-    // 3. Check for duplicate
-    const existingEvent = await prisma.webhookEvent.findUnique({
-      where: { dodoWebhookId: payload.id }
-    });
-
-    if (existingEvent) {
-      logInfo('Webhook already processed:', payload.id);
-      return NextResponse.json({ received: true });
-    }
-
-    // 4. Store webhook event
+    // 4. Store webhook event (id from payload)
     const event = await prisma.webhookEvent.create({
       data: {
-        dodoWebhookId: payload.id,
-        eventType: payload.type,
+        dodoWebhookId: payload.id || headerId,
+        eventType: payload.type || 'unknown',
         status: 'received',
-        payload: payload.data.object || {}
+        payload: payload.data?.object || {}
       }
     });
 

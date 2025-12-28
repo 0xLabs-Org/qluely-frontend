@@ -6,9 +6,21 @@ import { useEffect, useState } from 'react';
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
 
+  // TODO: Implement authentication and data fetching
+
   useEffect(() => {
     // Fetch user subscription data
-    // TODO: Implement authentication and data fetching
+    // Minimal demo: check if session exists by calling a lightweight endpoint
+    (async () => {
+      try {
+        const res = await fetch('/api/health');
+        if (res.ok) {
+          // no-op; in a real app you'd fetch `/api/me` or similar
+        }
+      } catch (err) {
+        // ignore
+      }
+    })();
   }, []);
 
   return (
@@ -21,12 +33,14 @@ export default function Dashboard() {
           <p className="text-slate-300 mb-4">
             {user?.subscriptionTier?.toUpperCase() || 'FREE'}
           </p>
-          <button
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-            onClick={() => window.location.href = '/'}
-          >
-            Upgrade Plan
-          </button>
+          <div>
+            <button
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+              onClick={() => window.location.href = '/'}
+            >
+              Upgrade Plan
+            </button>
+          </div>
         </div>
 
         <div className="bg-slate-800 rounded-lg p-6">

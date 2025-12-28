@@ -1,5 +1,7 @@
 // lib/email.ts
 import nodemailer from 'nodemailer';
+import pRetry from 'p-retry';
+import { logError, logInfo } from './logger';
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -37,10 +39,24 @@ export async function sendEmail({
   const template_ = templates[template];
   if (!template_) return;
 
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM,
-    to,
-    subject: template_.subject,
-    html: template_.html
-  });
+  try {
+    await pRetry(
+      () =>
+        transporter.sendMail({
+          from: process.env.SMTP_FROM,
+          to,
+          subject: template_.subject,
+          html: template_.html
+        }),
+      {
+        retries: 3,
+        onFailedAttempt: (err) => {
+          logError(`Email send attempt failed (attempt ${err.attemptNumber}):`, err);
+        }
+      }
+    );
+    logInfo('Email sent', { to, template });
+  } catch (err) {
+    logError('Failed to send email after retries', err);
+  }
 }

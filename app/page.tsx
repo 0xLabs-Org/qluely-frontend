@@ -154,24 +154,10 @@ export default function QluelyLanding() {
               <button
                 aria-label="Upgrade to Pro"
                 onClick={async () => {
-                  try {
-                    const userId = 'user_123';
-                    const response = await fetch('/api/checkout', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ plan: 'pro', userId }),
-                    });
-                    const data = await response.json();
-                    if (data.checkout_url) {
-                      window.location.href = data.checkout_url;
-                    } else {
-                      console.error('Checkout error:', data);
-                      alert('Error starting checkout');
-                    }
-                  } catch (error: any) {
-                    console.error('Error starting checkout', error);
-                    alert('Error starting checkout: ' + (error?.message || error));
-                  }
+                  // Prevent anonymous checkout from the public landing page.
+                  // Require users to sign in via Dashboard flow to start checkout.
+                  alert('Please sign in to your account to upgrade.');
+                  window.location.href = '/dashboard';
                 }}
                 className="bg-white text-[#7C3AED] px-6 py-3 rounded-full border border-[#7C3AED] hover:bg-[#7C3AED]/5 transition-all w-full sm:w-auto max-w-xs"
               >
@@ -377,26 +363,8 @@ export default function QluelyLanding() {
               </ul>
               <button
                 onClick={async () => {
-                  try {
-                    // TODO: Replace with actual user ID from authentication
-                    const userId = 'user_123'; // Temporary placeholder
-                    
-                    const response = await fetch('/api/checkout', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ plan: 'pro', userId }),
-                    });
-                    const data = await response.json();
-                    if (data.checkout_url) {
-                      window.location.href = data.checkout_url;
-                    } else {
-                      console.error('Checkout error:', data);
-                      alert('Error starting checkout');
-                    }
-                  } catch (error: any) {
-                    console.error('Error starting checkout', error);
-                    alert('Error starting checkout: ' + (error?.message || error));
-                  }
+                  alert('Please sign in to your account to upgrade.');
+                  window.location.href = '/dashboard';
                 }}
                 className="w-full bg-linear-to-r from-[#7C3AED] to-[#EC4899] text-white px-6 py-3 rounded-full text-lg font-medium hover:shadow-[0_0_25px_rgba(124,58,237,0.4)] transition-all transform hover:scale-105"
               >

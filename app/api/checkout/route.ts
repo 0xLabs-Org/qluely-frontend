@@ -5,18 +5,38 @@ import { prisma } from '@/lib/prisma';
 import { validateCheckoutRequest } from '@/lib/validation';
 import { logError } from '@/lib/logger';
 import { buildReturnUrl } from '@/lib/payments';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { logInfo } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
+    const securityHeaders = {
+      'Content-Security-Policy': "default-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';",
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'Referrer-Policy': 'no-referrer'
+    };
+
+    // Basic rate limiting by IP to protect checkout endpoint
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+    const rl = checkRateLimit(`checkout:${ip}`, 20, 60_000);
+    if (rl.limited) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429, headers: securityHeaders });
+    }
+
     // 1. Parse & validate request
     const body = await request.json();
     const validation = validateCheckoutRequest(body);
 
     if (!validation.success) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return NextResponse.json({ error: validation.error }, { status: 400, headers: securityHeaders });
     }
 
     const { plan, userId } = validation.data;
+
+    if (!userId) {
+      return NextResponse.json({ error: 'userId is required in request body' }, { status: 400, headers: securityHeaders });
+    }
 
     // 2. Get user & DodoPayments customer (require DB)
     const user = await prisma.user.findUnique({
@@ -25,7 +45,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404, headers: securityHeaders });
     }
 
     // 3. Create DodoPayments customer if doesn't exist
@@ -55,14 +75,14 @@ export async function POST(request: NextRequest) {
         });
       } catch (err) {
         logError('Dodo customer creation failed:', err);
-        return NextResponse.json({ error: 'Dodo customer creation failed' }, { status: 502 });
+        return NextResponse.json({ error: 'Dodo customer creation failed' }, { status: 502, headers: securityHeaders });
       }
     }
 
     // 4. Get plan config
     const planConfig = getPlanConfig(plan);
     if (!planConfig) {
-      return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid plan' }, { status: 400, headers: securityHeaders });
     }
 
     // 5. Create a local checkout session first so we can include our session id
@@ -103,7 +123,7 @@ export async function POST(request: NextRequest) {
       logError('Dodo checkout session creation failed:', err);
       await prisma.checkoutSession.delete({ where: { id: localSession.id } }).catch(() => {});
       const message = (err && (err as any).message) ? (err as any).message : 'Dodo checkout creation failed';
-      return NextResponse.json({ error: message }, { status: 502 });
+      return NextResponse.json({ error: message }, { status: 502, headers: securityHeaders });
     }
 
     // 7. Update local session with provider values
@@ -115,15 +135,19 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    return NextResponse.json({
-      checkout_url: checkoutSession.checkout_url,
-      session_id: localSession.id,
-      expires_at: localSession.expiresAt.toISOString(),
-      amount: {
-        cents: planConfig.priceCents,
-        currency: 'INR'
-      }
-    });
+    logInfo('Checkout session created', { userId: user.id, sessionId: localSession.id });
+    return NextResponse.json(
+      {
+        checkout_url: checkoutSession.checkout_url,
+        session_id: localSession.id,
+        expires_at: localSession.expiresAt.toISOString(),
+        amount: {
+          cents: planConfig.priceCents,
+          currency: 'INR'
+        }
+      },
+      { headers: securityHeaders }
+    );
 
   } catch (error) {
     logError('Checkout error:', error);
