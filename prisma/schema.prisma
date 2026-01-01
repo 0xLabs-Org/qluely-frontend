@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Account {
+  id               String       @id
+  userId           String       @unique
+  type             AccountTypes @default(FREE)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime
+  creditsRemaining Int          @default(15)
+  creditsUsed      Int          @default(0)
+  User             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id        String   @id
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  Account   Account?
+}
+
+enum AccountTypes {
+  FREE
+  PREMIUM
+  PRO
+}
