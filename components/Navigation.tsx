@@ -35,7 +35,7 @@ export default function Navigation({ className }: NavigationProps) {
       {/* Navbar */}
       <nav
         className={cn(
-          "mx-auto flex items-center justify-between shadow-sm border border-black/10 bg-bg-light backdrop-blur-sm px-4 py-3",
+          "mx-auto flex items-center justify-between shadow-sm border-b border-black/10 bg-bg-light backdrop-blur-sm px-4 py-3",
           className
         )}
       >

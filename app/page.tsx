@@ -53,39 +53,41 @@ export default function QluelyLanding() {
       {/* <div className="w-full px-4 sm:px-6 pt-6 z-20"> */}
       <Navigation className="px-6 py-2 z-1" />
       {/* </div> */}
-      <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute -top-1/2 -left-1/3 w-1/2 h-full border-2 border-dotted border-[#2b8ecc]/10 rounded-2xl" />
-        <div className="absolute top-1/3 -right-1/4 w-1/2 h-1/2 border-2 border-dotted border-[#2b8ecc]/10 rounded-2xl" />
-        <div className="absolute top-1/3 -left-1/4 w-1/2 h-1/2 border-2 border-[#2b8ecc]/10 rounded-2xl" />
-        <div className="absolute -top-1/2 -right-1/3 w-1/2 h-full border-2 border-[#2b8ecc]/10 rounded-2xl" />
+      <div className="absolute inset-0 pointer-events-none z-0 hidden md:block">
+        <div className="absolute -top-1/3 -left-1/4 md:-top-1/2 md:-left-1/3 w-1/2 h-full border-2 border-dotted border-[#2b8ecc]/10 rounded-2xl" />
+        <div className="absolute -top-1/2 -right-1/3 md:-top-1/2 md:-right-1/3 w-1/2 h-full border-2 border-[#2b8ecc]/10 rounded-2xl" />
+        <div className="absolute top-2/3 -left-1/4 md:top-1/3 md:-left-1/4 w-1/2 h-1/2 border-2 border-[#2b8ecc]/10 rounded-2xl" />
+        <div className="absolute top-3/5 -right-1/4 md:top-1/3 md:-right-1/4 w-1/2 h-1/2 border-2 border-dotted border-[#2b8ecc]/10 rounded-2xl" />
       </div>
-      <section className="relative  min-h-screen overflow-hidden flex flex-col items-center justify-center px-4 sm:px-6  py-20">
+
+      {/* Hero Section */}
+      <section className="relative min-h-[90svh] md:min-h-screen overflow-hidden flex flex-col items-center justify-center px-4 sm:px-6 py-12 sm:py-20 ">
         {/* Content */}
-        <div className="relative z-10 flex flex-col items-center gap-6 text-center">
-          <span className="pointer-events-none bg-linear-to-b from-primary to-primary/70 bg-clip-text text-6xl sm:text-7xl leading-none font-semibold text-transparent">
+        <div className="relative z-10 flex flex-col items-center gap-4 sm:gap-2 text-center max-w-4xl mx-auto">
+          <span className="pointer-events-none bg-linear-to-b from-primary to-primary/70 bg-clip-text text-5xl sm:text-5xl md:text-7xl leading-tight font-semibold text-transparent">
             Undetectable AI
           </span>
 
-          <span className="pointer-events-none bg-linear-to-tl from-[#2b8ecc] to-[#2b8ecc]/50 bg-clip-text text-6xl sm:text-7xl leading-none font-semibold text-transparent">
+          <span className="pointer-events-none bg-linear-to-tl from-[#2b8ecc] to-[#2b8ecc]/50 bg-clip-text text-5xl sm:text-5xl md:text-7xl leading-tight font-semibold text-transparent">
             for Meetings
           </span>
 
-          <div className="flex flex-col items-center gap-1">
-            <span className="text-black/60 font-medium">
+          <div className="flex flex-col items-center gap-1 px-4">
+            <span className="text-black/60 font-medium text-sm sm:text-base text-center">
               Qluely is your private, real-time AI meeting co-pilot.
             </span>
-            <span className="text-black/60 font-medium">
+            <span className="text-black/60 font-medium text-sm sm:text-base text-center">
               Just accurate answers, quiet intelligence in the background.
             </span>
           </div>
 
-          <Button className="flex gap-1 mt-4">
+          <Button className="flex items-center gap-2 mt-6 px-6 py-3 text-base sm:text-lg">
             Try for Free
-            <ArrowUpRight />
+            <ArrowUpRight className="w-4 h-4 sm:w-5 sm:h-5" />
           </Button>
 
           <HeroVideoDialog
-            className="block dark:hidden mt-6 h-150 w-250"
+            className="block dark:hidden mt-8 w-full max-w-[320px] sm:max-w-sm md:max-w-[640px] lg:max-w-[800px] xl:max-w-[900px] aspect-video"
             animationStyle="from-center"
             videoSrc="https://www.youtube.com/embed/qh3NGpYRG3I?si=4rb-zSdDkVK9qxxb"
             thumbnailSrc="https://startup-template-sage.vercel.app/hero-light.png"
