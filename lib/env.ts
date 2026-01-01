@@ -9,7 +9,9 @@ const envSchema = z.object({
   // Dodo payments
   DODO_PAYMENTS_API_KEY: z.string().optional(),
   DODO_PAYMENTS_WEBHOOK_KEY: z.string().optional(),
-  DODO_PAYMENTS_ENVIRONMENT: z.string().default('test_mode'),
+  // DODO_PAYMENTS_ENVIRONMENT controls which Dodo API endpoints are used.
+  // Use 'test_mode' for sandbox/testing and 'live_mode' for production.
+  DODO_PAYMENTS_ENVIRONMENT: z.string().default('live_mode'),
   DODO_PAYMENTS_RETURN_URL: z.string().optional(),
 
   // Product ids

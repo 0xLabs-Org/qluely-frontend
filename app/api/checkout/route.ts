@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { validateCheckoutRequest } from '@/lib/validation';
 import { logError } from '@/lib/logger';
 import { buildReturnUrl, createCheckoutSession } from '@/lib/payments';
+import { formatCurrency, convertCents } from '@/lib/currency';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { logInfo } from '@/lib/logger';
 import { getTokenFromReq, verifySessionToken } from '@/lib/auth';
@@ -112,8 +113,18 @@ export async function POST(request: NextRequest) {
         session_id: localSession.id,
         expires_at: localSession.expiresAt.toISOString(),
         amount: {
+          // Primary currency used by the app/provider
           cents: planConfig.priceCents,
-          currency: 'INR'
+          currency: planConfig.currency || 'INR',
+          // Provide an INR display and a USD equivalent for convenience
+          inr: {
+            cents: planConfig.currency === 'INR' ? planConfig.priceCents : convertCents(planConfig.priceCents, 'USD', 'INR'),
+            formatted: formatCurrency(planConfig.currency === 'INR' ? planConfig.priceCents : convertCents(planConfig.priceCents, 'USD', 'INR'), 'INR')
+          },
+          usd: {
+            cents: planConfig.currency === 'USD' ? planConfig.priceCents : convertCents(planConfig.priceCents, 'INR', 'USD'),
+            formatted: formatCurrency(planConfig.currency === 'USD' ? planConfig.priceCents : convertCents(planConfig.priceCents, 'INR', 'USD'), 'USD')
+          }
         }
       },
       { headers: securityHeaders }

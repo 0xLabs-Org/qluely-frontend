@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 export default function SignInPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
   const [callbackUrl, setCallbackUrl] = useState('/checkout');
@@ -50,15 +51,25 @@ export default function SignInPage() {
           </label>
           <label style={{ display: 'block', marginBottom: 10, color: '#000' }}>
             <div style={{ marginBottom: 6, color: '#000' }}>Password</div>
-            <input
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              type="password"
-              required
-              style={{ width: '100%', padding: 10, color: '#000', background: '#fff', border: '1px solid #cfcfcf', borderRadius: 6, boxSizing: 'border-box', fontSize: 14 }}
-              onFocus={(e) => (e.currentTarget.style.boxShadow = '0 0 0 3px rgba(11,116,255,0.12)')}
-              onBlur={(e) => (e.currentTarget.style.boxShadow = 'none')}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                type={showPassword ? 'text' : 'password'}
+                required
+                style={{ width: '100%', padding: '10px 40px 10px 10px', color: '#000', background: '#fff', border: '1px solid #cfcfcf', borderRadius: 6, boxSizing: 'border-box', fontSize: 14 }}
+                onFocus={(e) => (e.currentTarget.style.boxShadow = '0 0 0 3px rgba(11,116,255,0.12)')}
+                onBlur={(e) => (e.currentTarget.style.boxShadow = 'none')}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((s) => !s)}
+                style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 4 }}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? '🙈' : '👁️'}
+              </button>
+            </div>
           </label>
           {error && <div style={{ color: 'red', marginBottom: 8 }}>{error}</div>}
           <button type="submit" style={{ width: '100%', padding: 10, background: '#0b74ff', color: '#fff', border: 'none' }}>Sign in</button>
