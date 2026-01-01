@@ -1,5 +1,4 @@
 "use client";
-import React, { useState, useEffect } from "react";
 import { MessageSquare, FileText, Eye, Mail } from "lucide-react";
 import { motion } from "motion/react";
 import { useOS } from "@/hooks/useOs";
@@ -46,15 +45,17 @@ export default function QluelyLanding() {
   const os = useOS();
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans selection:bg-[#00D4FF] selection:text-black overflow-x-hidden">
-      <Navigation />
-      <section className="min-h-[70vh] sm:min-h-[80vh] flex items-center justify-center px-4 sm:px-6 pt-24 sm:pt-20 pb-12 sm:pb-0 bg-linear-to-b from-white via-[#F8F9FA] to-white">
+    <div className="min-h-screen font-sans overflow-x-hidden bg-white">
+      <div className="px-4 sm:px-6 pt-6">
+        <Navigation className="px-6 py-2" />
+      </div>
+      <section className="min-h-[70vh] sm:min-h-[80vh] flex items-center justify-center px-4 sm:px-6 pt-8 pb-12 sm:pb-0 bg-gradient-to-b from-white via-[#F8F9FA] to-white">
         <div className="max-w-5xl mx-auto text-center">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-transparent bg-clip-text bg-linear-to-r from-[#7C3AED] via-[#EC4899] to-[#10B981] uppercase tracking-[0.05em] text-4xl sm:text-5xl md:text-7xl leading-[1.1] mb-6 sm:mb-8 px-2"
+            className="text-transparent bg-clip-text bg-gradient-to-r from-[#7C3AED] via-[#EC4899] to-[#10B981] uppercase tracking-[0.05em] text-4xl sm:text-5xl md:text-7xl leading-[1.1] mb-6 sm:mb-8 px-2"
           >
             #1 undetectable AI for meetings
           </motion.h1>
@@ -79,7 +80,7 @@ export default function QluelyLanding() {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-center">
               <button
                 aria-label={`Download Qluely for ${os}`}
-                className="bg-linear-to-r from-[#7C3AED] to-[#EC4899] text-white px-6 sm:px-10 py-3 sm:py-4 text-lg sm:text-xl rounded-full hover:shadow-[0_0_35px_rgba(124,58,237,0.5)] transition-all transform hover:scale-105 w-full sm:w-auto max-w-xs sm:max-w-none"
+                className="bg-gradient-to-r from-[#7C3AED] to-[#EC4899] text-white px-6 sm:px-10 py-3 sm:py-4 text-lg sm:text-xl rounded-full hover:shadow-[0_0_35px_rgba(124,58,237,0.5)] transition-all transform hover:scale-105 w-full sm:w-auto max-w-xs sm:max-w-none"
                 onClick={() => {
                   const url =
                     ApplicationURL[os as "macOS" | "Linux" | "Windows"];
@@ -115,7 +116,7 @@ export default function QluelyLanding() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-transparent bg-clip-text bg-linear-to-r from-[#7C3AED] to-[#EC4899] text-center text-3xl sm:text-4xl md:text-5xl mb-10 sm:mb-16 px-2"
+            className="text-transparent bg-clip-text bg-gradient-to-r from-[#7C3AED] to-[#EC4899] text-center text-3xl sm:text-4xl md:text-5xl mb-10 sm:mb-16 px-2"
           >
             Stay Ahead Without Breaking Focus
           </motion.h2>
