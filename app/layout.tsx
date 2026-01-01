@@ -13,21 +13,34 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Qluely — AI Meeting Assistant with Live Notes & Smart Summaries",
+  title: "Qluely — Undetectable AI Assistant for Screens, Meetings & Workflows",
   description:
-    "Choose the best Qluely plan for AI-powered meetings — live transcription, real-time notes, automated summaries, and CRM-ready insights. Free plan available.",
+    "Qluely is an undetectable AI assistant designed for real-time help during meetings, interviews, and work sessions. Invisible on screen recordings and screenshots. Built for speed, privacy, and productivity.",
+  keywords: [
+    "Qluely",
+    "Cluely",
+    "undetectable AI assistant",
+    "cheating software",
+    "AI assistant invisible on screen",
+    "screen undetectable AI",
+    "AI for meetings",
+    "AI interview assistant",
+    "hidden AI tool",
+    "AI productivity assistant",
+  ],
 
   openGraph: {
-    title: "Qluely — Smarter AI Meeting Assistant",
+    title: "Qluely — Undetectable AI Assistant",
     description:
-      "Compare plans offering real-time transcription, live notes, and automated summaries. Designed for sales calls and everyday meetings. Start free.",
-    url: "https://Qluely.in/",
+      "An AI assistant that stays invisible on screen. Get real-time help during meetings, interviews, and work without detection.",
+    url: "https://qluely.in",
+    siteName: "Qluely",
     images: [
       {
-        url: "https://Qluely.in/logo.png",
+        url: "https://qluely.in/og.png",
         width: 1200,
         height: 630,
-        alt: "Qluely Pricing — meeting assistant",
+        alt: "Qluely Undetectable AI Assistant",
       },
     ],
     type: "website",
@@ -35,25 +48,25 @@ export const metadata: Metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title: "Qluely — Smarter AI Meeting Assistant",
+    title: "Qluely — Undetectable AI Assistant",
     description:
-      "AI meeting notes, transcription, and summaries — pick the plan that fits your workflow. Free plan included.",
-    images: ["https://Qluely.in/og/logo.png"],
+      "Real-time AI help that stays invisible on screen recordings and screenshots.",
+    images: ["https://qluely.in/og.png"],
   },
+  robots: {
+    index: true,
+    follow: true,
+  },
+
+  alternates: {
+    canonical: "https://qluely.in",
+  },
+
   icons: {
     icon: "/logo.png",
     apple: "/logo.png",
     shortcut: "/logo.png",
   },
-
-  keywords: [
-    "AI meeting assistant",
-    "meeting transcription",
-    "meeting summaries",
-    "sales call notes",
-    "CRM notes automation",
-    "Qluely pricing",
-  ],
 };
 
 export default function RootLayout({
