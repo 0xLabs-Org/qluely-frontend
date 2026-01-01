@@ -7,7 +7,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -48,7 +47,7 @@ model DodoCustomer {
 model Subscription {
   id                String      @id @default(cuid())
   userId            String      @unique
-  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User        @relation(fields: [userId], references: [id], onDelete: Restrict)
   
   dodoSubId         String      @unique  // e.g., sub_xxxxx
   planSlug          String      // 'starter', 'pro', 'premium'
@@ -72,7 +71,7 @@ model Subscription {
 model Payment {
   id                String      @id @default(cuid())
   userId            String
-  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User        @relation(fields: [userId], references: [id], onDelete: Restrict)
   
   subscriptionId    String?
   subscription      Subscription? @relation(fields: [subscriptionId], references: [id])
@@ -85,12 +84,14 @@ model Payment {
   
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
+
+  @@index([status])
 }
 
 model Invoice {
   id                String      @id @default(cuid())
   userId            String
-  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User        @relation(fields: [userId], references: [id], onDelete: Restrict)
   
   subscriptionId    String?
   subscription      Subscription? @relation(fields: [subscriptionId], references: [id])
@@ -104,6 +105,8 @@ model Invoice {
   
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
+
+  @@index([status])
 }
 
 model WebhookEvent {
@@ -117,12 +120,14 @@ model WebhookEvent {
   errorMessage      String?
   
   createdAt         DateTime    @default(now())
+
+  @@index([eventType])
 }
 
 model CheckoutSession {
   id                String      @id @default(cuid())
   userId            String
-  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User        @relation(fields: [userId], references: [id], onDelete: Restrict)
   
   dodoSessionId     String      @unique
   planSlug          String
@@ -133,4 +138,6 @@ model CheckoutSession {
   
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
+
+  @@index([status])
 }

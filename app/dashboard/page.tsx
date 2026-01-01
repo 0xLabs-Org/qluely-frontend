@@ -1,39 +1,19 @@
 // app/dashboard/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
-export default function Dashboard() {
-  const [user, setUser] = useState<any>(null);
-
+export default function DashboardRedirect() {
   useEffect(() => {
-    // Fetch user subscription data
-    // TODO: Implement authentication and data fetching
+    // Immediately route to sign-in since dashboard is not available.
+    if (typeof window !== 'undefined') {
+      window.location.href = '/signin';
+    }
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white p-8">
-      <h1 className="text-4xl font-bold mb-8">Dashboard</h1>
-      
-      <div className="grid gap-8 max-w-4xl">
-        <div className="bg-slate-800 rounded-lg p-6">
-          <h2 className="text-2xl font-bold mb-4">Current Plan</h2>
-          <p className="text-slate-300 mb-4">
-            {user?.subscriptionTier?.toUpperCase() || 'FREE'}
-          </p>
-          <button
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-            onClick={() => window.location.href = '/'}
-          >
-            Upgrade Plan
-          </button>
-        </div>
-
-        <div className="bg-slate-800 rounded-lg p-6">
-          <h2 className="text-2xl font-bold mb-4">Billing</h2>
-          <p className="text-slate-300">Next billing: TBD</p>
-        </div>
-      </div>
+    <div className="min-h-screen flex items-center justify-center">
+      <p className="text-base text-gray-600">Redirecting to sign-in...</p>
     </div>
   );
 }
