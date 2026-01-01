@@ -6,6 +6,7 @@ import Navigation from "@/components/Navigation";
 import { AnimatedGradientText } from "@/components/AnimatedTextButton";
 import { Button } from "@/components/ui/button";
 import { HeroVideoDialog } from "@/components/ui/hero-video-dialog";
+import FeatureSection from "@/components/Features";
 
 const features = [
   {
@@ -81,10 +82,26 @@ export default function QluelyLanding() {
             </span>
           </div>
 
-          <Button className="flex items-center gap-2 mt-6 px-6 py-3 text-base sm:text-lg">
+          <motion.div
+            initial={{ opacity: 0, y: 5 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="flex flex-wrap gap-4 mt-10"
+          >
+            <button className="px-6 py-3 bg-white border border-gray-200 text-[#1A1F36] rounded-lg font-medium hover:bg-gray-50 transition-colors">
+              View Demo
+            </button>
+            <button className="px-6 py-3 bg-[#1A1F36] text-white rounded-lg font-medium hover:bg-gray-800 transition-colors shadow-lg shadow-gray-200/50 flex gap-1">
+              Try for Free
+              <ArrowUpRight className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
+          </motion.div>
+
+          {/* <Button className="flex items-center gap-2 mt-6 px-6 py-3 text-base sm:text-lg">
             Try for Free
             <ArrowUpRight className="w-4 h-4 sm:w-5 sm:h-5" />
-          </Button>
+          </Button> */}
 
           <HeroVideoDialog
             className="block dark:hidden mt-8 w-full max-w-[320px] sm:max-w-sm md:max-w-[640px] lg:max-w-[800px] xl:max-w-[900px] aspect-video"
@@ -95,62 +112,8 @@ export default function QluelyLanding() {
           />
         </div>
       </section>
-
-      <section className="py-16 sm:py-24 px-4 sm:px-6 ">
-        <div className="max-w-7xl mx-auto">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-transparent bg-clip-text bg-linear-to-r from-[#7C3AED] to-[#EC4899] text-center text-3xl sm:text-4xl md:text-5xl mb-10 sm:mb-16 px-2"
-          >
-            Stay Ahead Without Breaking Focus
-          </motion.h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  whileHover={{ scale: 1.05 }}
-                  className=" border border-gray-200 rounded-2xl p-6 sm:p-8 hover:shadow-[0_8px_30px_rgba(124,58,237,0.15)] hover:border-[#7C3AED]/30 transition-all"
-                >
-                  <div
-                    className="w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mb-4 sm:mb-6"
-                    style={{
-                      backgroundColor: `${feature.color}15`,
-                      border: `2px solid ${feature.color}`,
-                    }}
-                  >
-                    <Icon
-                      size={28}
-                      className="sm:hidden"
-                      style={{ color: feature.color }}
-                    />
-                    <Icon
-                      size={32}
-                      className="hidden sm:block"
-                      style={{ color: feature.color }}
-                    />
-                  </div>
-                  <h3 className="text-[#1A1F36] text-xl sm:text-2xl mb-3 sm:mb-4">
-                    {feature.title}
-                  </h3>
-                  <p className="text-[#64748B] text-base sm:text-lg leading-relaxed">
-                    {feature.description}
-                  </p>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+      {/* feature */}
+      <FeatureSection />
 
       {/* --- Pricing Section --- */}
       <section className="py-16 sm:py-24 px-4 sm:px-6 ">
