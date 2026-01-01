@@ -35,22 +35,20 @@ export default function SignInPage() {
 
           <form method="post" action="/api/auth/login" style={{ marginTop: 18 }}>
             <input type="hidden" name="return_to" value={returnTo} />
-
             <label style={{ display: 'block', marginBottom: 10 }}>
               <span style={{ display: 'block', marginBottom: 6, color: '#333' }}>Email</span>
               <input name="email" value={email} onChange={(e) => setEmail(e.target.value)} type="email" required placeholder="you@company.com" style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e6e6e6' }} />
             </label>
 
-            <button type="submit" style={{ width: '100%', padding: '10px 14px', borderRadius: 8, background: '#0b74ff', color: '#fff', border: 'none', fontWeight: 600 }}>Continue</button>
+            <label style={{ display: 'block', marginBottom: 10 }}>
+              <span style={{ display: 'block', marginBottom: 6, color: '#333' }}>Password</span>
+              <input name="password" type="password" required placeholder="Choose a strong password" style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e6e6e6' }} />
+            </label>
+
+            <button type="submit" style={{ width: '100%', padding: '10px 14px', borderRadius: 8, background: '#0b74ff', color: '#fff', border: 'none', fontWeight: 600 }}>Sign in / Sign up</button>
           </form>
 
-          <div style={{ marginTop: 16, textAlign: 'center' }}>
-            <span style={{ color: '#999', fontSize: 13 }}>Or continue with</span>
-            <div style={{ display: 'flex', gap: 8, marginTop: 10, justifyContent: 'center' }}>
-              <a href="#" onClick={(e) => e.preventDefault()} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, border: '1px solid #e6e6e6', textDecoration: 'none', color: '#333' }}>Google</a>
-              <a href="#" onClick={(e) => e.preventDefault()} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, border: '1px solid #e6e6e6', textDecoration: 'none', color: '#333' }}>GitHub</a>
-            </div>
-          </div>
+          
 
           <p style={{ marginTop: 18, textAlign: 'center', color: '#888', fontSize: 13 }}>By continuing you agree to our <a href="/terms" style={{ color: '#0b74ff' }}>Terms</a> and <a href="/privacy" style={{ color: '#0b74ff' }}>Privacy Policy</a>.</p>
         </main>

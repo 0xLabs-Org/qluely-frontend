@@ -1,6 +1,6 @@
 // app/api/webhooks/dodo/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { Webhook } from 'standardwebhooks';
+import { dodoClient } from '@/lib/dodo-client';
 import { prisma } from '@/lib/prisma';
 import { getWebhookQueue } from '@/lib/queue';
 import { logError, logInfo } from '@/lib/logger';
@@ -8,7 +8,6 @@ import { checkRateLimit } from '@/lib/rateLimit';
 import { WebhookEnvelopeSchema, EventSchemas } from '@/lib/webhook-schemas';
 
 import { env } from '@/lib/env';
-const webhook = new Webhook(env.DODO_PAYMENTS_WEBHOOK_KEY!);
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,20 +37,22 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Quick duplicate check using header id to avoid expensive signature work for duplicates
-    const dupByHeader = await prisma.webhookEvent.findUnique({ where: { dodoWebhookId: headerId } });
+    const dupByHeader = await prisma.webhookEvent.findUnique({ where: { webhookId: headerId } });
     if (dupByHeader) {
       logInfo('Webhook already processed (by header):', headerId);
       return NextResponse.json({ received: true }, { headers: securityHeaders });
     }
 
-    // 3. Verify signature and parse
+    // 3. Verify signature and parse using SDK
     let payload: unknown;
     try {
-      payload = webhook.verify(rawPayload, {
-        'webhook-id': headerId,
-        'webhook-signature': headerSig,
-        'webhook-timestamp': headerTs
-      });
+      // SDK expects raw body and headers object
+      const headers = {
+        'webhook-id': headerId!,
+        'webhook-signature': headerSig!,
+        'webhook-timestamp': headerTs!
+      };
+      payload = await dodoClient.webhooks.unwrap(rawPayload, { headers });
     } catch (error) {
       logError('Webhook signature verification failed:', error);
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401, headers: securityHeaders });
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     // 4. Duplicate check using canonical payload id (preferred)
     const eventIdCanonical = (envelope.data.id || headerId) as string;
-    const dup = await prisma.webhookEvent.findUnique({ where: { dodoWebhookId: eventIdCanonical } });
+    const dup = await prisma.webhookEvent.findUnique({ where: { webhookId: eventIdCanonical } });
     if (dup) {
       logInfo('Webhook already processed (by payload):', eventIdCanonical);
       return NextResponse.json({ received: true }, { headers: securityHeaders });
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
     // 5. Store webhook event (id from payload)
     const event = await prisma.webhookEvent.create({
       data: {
-        dodoWebhookId: eventIdCanonical,
+        webhookId: eventIdCanonical,
         eventType: eventType || 'unknown',
         status: 'received',
         payload: object || {}

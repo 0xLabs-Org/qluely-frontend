@@ -1,20 +1,25 @@
 // lib/rateLimit.ts
-import Redis from 'ioredis';
-
 type Entry = { count: number; reset: number };
 
 const store = new Map<string, Entry>();
 
-let redis: Redis | null = null;
+let redis: any = null;
 import { env } from './env';
 
 const redisUrl = env.REDIS_URL || '';
 
 function getRedisClient() {
   if (!redis && redisUrl) {
-    redis = new Redis(redisUrl);
-    // swallow redis errors to avoid crashing the app if redis is misconfigured
-    redis.on('error', () => {});
+    try {
+      // require at runtime to avoid type issues in environments without ioredis
+      const IORedis = require('ioredis');
+      redis = new IORedis(redisUrl);
+      // swallow redis errors to avoid crashing the app if redis is misconfigured
+      redis.on('error', () => {});
+    } catch (err) {
+      // ioredis not available; fall back to in-memory store
+      redis = null;
+    }
   }
   return redis;
 }

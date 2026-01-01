@@ -56,46 +56,51 @@ export async function handlePaymentSucceeded(payload: any) {
     // Prefer metadata.app_user_id, fallback to mapping via customer id if present
     let userId = metadata?.app_user_id;
     if (!userId && customer_id) {
-      const customer = await prisma.dodoCustomer.findUnique({ where: { dodoCustomerId: customer_id } });
-      userId = customer?.userId;
+      const acct = await prisma.account.findUnique({ where: { customerId: customer_id } });
+      userId = acct?.userId;
     }
-    if (!userId) throw new Error('Missing app_user_id in metadata and no matching customer found');
+    if (!userId) throw new Error('Missing app_user_id in metadata and no matching account found');
 
-    // Create or update payment (idempotent by dodoPaymentId)
-    const payment = await prisma.payment.upsert({
-      where: { dodoPaymentId: id },
+    // Ensure account exists for the user (userId is unique on Account)
+    const account = await prisma.account.upsert({
+      where: { userId },
       create: {
         userId,
-        dodoPaymentId: id,
-        amountCents,
+        customerId: customer_id || undefined,
+        planSlug: metadata?.plan_slug || undefined
+      },
+      update: {
+        customerId: customer_id || undefined,
+        planSlug: metadata?.plan_slug || undefined
+      }
+    });
+
+    // Create or update payment (idempotent by externalId)
+    const payment = await prisma.payment.upsert({
+      where: { externalId: id },
+      create: {
+        userId,
+        accountId: account.id,
+        externalId: id,
+        amount: amountCents,
         status: 'succeeded',
         processedAt: new Date()
       },
       update: {
         status: 'succeeded',
-        amountCents,
+        amount: amountCents,
         processedAt: new Date()
       }
     });
 
-    // If subscription payment
+    // If subscription payment, attach subscription id to account
     if (subscription_id) {
-      const subscription = await prisma.subscription.upsert({
-        where: { dodoSubId: subscription_id },
-        create: {
-          userId,
-          dodoSubId: subscription_id,
-          planSlug: metadata?.plan_slug || 'pro',
-          productId: metadata?.product_id || 'unknown',
-          amountCents: amountCents,
-          status: 'pending'
-        },
-        update: { status: 'pending' }
-      });
-
-      await prisma.payment.update({
-        where: { id: payment.id },
-        data: { subscriptionId: subscription.id }
+      await prisma.account.update({
+        where: { id: account.id },
+        data: {
+          subscriptionId: subscription_id,
+          planSlug: metadata?.plan_slug || account.planSlug
+        }
       });
     }
 
@@ -123,14 +128,12 @@ export async function handleSubscriptionActive(payload: any) {
   const { id, current_period_start, current_period_end } = parsed;
 
   try {
-    const subscription = await prisma.subscription.findUnique({
-      where: { dodoSubId: id }
-    });
+    const account = await prisma.account.findUnique({ where: { subscriptionId: id } });
 
-    if (!subscription) throw new Error(`Subscription not found: ${id}`);
+    if (!account) throw new Error(`Subscription (account) not found for id: ${id}`);
 
-    await prisma.subscription.update({
-      where: { id: subscription.id },
+    await prisma.account.update({
+      where: { id: account.id },
       data: {
         status: 'active',
         startedAt: parseDateMaybe(current_period_start) || undefined,
@@ -138,26 +141,17 @@ export async function handleSubscriptionActive(payload: any) {
       }
     });
 
-    // Update user tier
-    await prisma.user.update({
-      where: { id: subscription.userId },
-      data: { subscriptionTier: subscription.planSlug }
-    });
-
     // Send email
-    const user = await prisma.user.findUnique({
-      where: { id: subscription.userId }
-    });
-
+    const user = await prisma.user.findUnique({ where: { id: account.userId } });
     if (user?.email) {
       await sendEmail({
         to: user.email,
         template: 'subscription_activated',
-        data: { plan: subscription.planSlug }
+        data: { plan: account.planSlug }
       });
     }
 
-    logInfo('Subscription activated:', id);
+    logInfo('Subscription (account) activated:', id);
     return { success: true };
 
   } catch (error) {
@@ -171,33 +165,30 @@ export async function handleSubscriptionRenewed(payload: any) {
   const { id, current_period_start, current_period_end, amount } = parsed;
 
   try {
-    const subscription = await prisma.subscription.findUnique({
-      where: { dodoSubId: id }
-    });
+    const account = await prisma.account.findUnique({ where: { subscriptionId: id } });
+    if (!account) throw new Error(`Subscription (account) not found for id: ${id}`);
 
-    if (!subscription) throw new Error(`Subscription not found: ${id}`);
-
-    await prisma.subscription.update({
-      where: { id: subscription.id },
+    await prisma.account.update({
+      where: { id: account.id },
       data: {
         nextBillingDate: parseDateMaybe(current_period_end) || undefined
       }
     });
 
-    // Create invoice
-    const totalCents = parseAmountToCents(amount);
+    // Create invoice (schema uses totalAmount in cents)
+    const totalAmount = parseAmountToCents(amount);
     await prisma.invoice.create({
       data: {
-        userId: subscription.userId,
-        subscriptionId: subscription.id,
+        userId: account.userId,
+        accountId: account.id,
         invoiceNumber: `INV-${Date.now()}`,
-        totalCents: totalCents || 0,
+        totalAmount: totalAmount || 0,
         status: 'paid',
         paidAt: new Date()
       }
     });
 
-    logInfo('Subscription renewed:', id);
+    logInfo('Subscription (account) renewed:', id);
     return { success: true };
 
   } catch (error) {
@@ -211,18 +202,12 @@ export async function handleSubscriptionOnHold(payload: any) {
   const { id } = parsed;
 
   try {
-    const subscription = await prisma.subscription.findUnique({
-      where: { dodoSubId: id }
-    });
+    const account = await prisma.account.findUnique({ where: { subscriptionId: id } });
+    if (!account) throw new Error(`Subscription (account) not found for id: ${id}`);
 
-    if (!subscription) throw new Error(`Subscription not found: ${id}`);
+    await prisma.account.update({ where: { id: account.id }, data: { status: 'on_hold' } });
 
-    await prisma.subscription.update({
-      where: { id: subscription.id },
-      data: { status: 'on_hold' }
-    });
-
-    logInfo('Subscription on hold:', id);
+    logInfo('Subscription (account) on hold:', id);
     return { success: true };
 
   } catch (error) {
@@ -236,27 +221,20 @@ export async function handleSubscriptionCancelled(payload: any) {
   const { id } = parsed;
 
   try {
-    const subscription = await prisma.subscription.findUnique({
-      where: { dodoSubId: id }
-    });
+    const account = await prisma.account.findUnique({ where: { subscriptionId: id } });
+    if (!account) throw new Error(`Subscription (account) not found for id: ${id}`);
 
-    if (!subscription) throw new Error(`Subscription not found: ${id}`);
-
-    await prisma.subscription.update({
-      where: { id: subscription.id },
+    await prisma.account.update({
+      where: { id: account.id },
       data: {
         status: 'cancelled',
-        cancelledAt: new Date()
+        cancelledAt: new Date(),
+        planSlug: null,
+        type: 'FREE'
       }
     });
 
-    // Downgrade user
-    await prisma.user.update({
-      where: { id: subscription.userId },
-      data: { subscriptionTier: 'free' }
-    });
-
-    logInfo('Subscription cancelled:', id);
+    logInfo('Subscription (account) cancelled:', id);
     return { success: true };
 
   } catch (error) {

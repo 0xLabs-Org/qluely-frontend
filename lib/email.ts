@@ -52,9 +52,9 @@ export async function sendEmail({
         }),
       {
         retries: 3,
-        onFailedAttempt: (err) => {
-          logError(`Email send attempt failed (attempt ${err.attemptNumber}):`, err);
-        }
+        onFailedAttempt: (err: any) => {
+            logError(`Email send attempt failed (attempt ${err.attemptNumber}):`, err);
+          }
       }
     );
     logInfo('Email sent', { to, template });

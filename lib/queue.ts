@@ -1,6 +1,16 @@
 // lib/queue.ts
-import { Queue, Worker } from 'bullmq';
-import Redis from 'ioredis';
+// Make queue optional for environments without Redis/bullmq installed.
+let Queue: any;
+let Worker: any;
+let RedisClient: any;
+try {
+  const bull = require('bullmq');
+  Queue = bull.Queue;
+  Worker = bull.Worker;
+  RedisClient = require('ioredis');
+} catch (err) {
+  // queueing disabled in this environment
+}
 import { webhookHandlers } from './webhook-handlers';
 import { prisma } from './prisma';
 import { logError, logInfo } from './logger';
@@ -9,20 +19,23 @@ import { logError, logInfo } from './logger';
 import { env } from './env';
 const redisUrl = env.REDIS_URL || 'redis://localhost:6379';
 
-let redisConnection: Redis | null = null;
+let redisConnection: any = null;
 export function getRedisConnection() {
+  if (!RedisClient) return null;
   if (!redisConnection) {
     // ioredis must be configured with `maxRetriesPerRequest: null` for BullMQ compatibility
-    redisConnection = new Redis(redisUrl, { maxRetriesPerRequest: null as any });
+    redisConnection = new RedisClient(redisUrl, { maxRetriesPerRequest: null });
   }
   return redisConnection;
 }
 
-let _webhookQueue: Queue | null = null;
+let _webhookQueue: any = null;
 export function getWebhookQueue() {
   if (!_webhookQueue) {
+    const conn = getRedisConnection();
+    if (!Queue || !conn) return null;
     _webhookQueue = new Queue('webhooks', {
-      connection: getRedisConnection(),
+      connection: conn,
       defaultJobOptions: {
         attempts: 3,
         backoff: { type: 'exponential', delay: 2000 },
@@ -33,13 +46,15 @@ export function getWebhookQueue() {
   return _webhookQueue;
 }
 
-let _webhookWorker: Worker | null = null;
+let _webhookWorker: any = null;
 export function initWebhookWorker() {
   if (_webhookWorker) return _webhookWorker;
+  const conn = getRedisConnection();
+  if (!Worker || !conn) return null;
 
   _webhookWorker = new Worker(
     'webhooks',
-    async (job) => {
+    async (job: any) => {
       const { eventId, eventType, payload } = job.data;
 
       try {
@@ -78,12 +93,12 @@ export function initWebhookWorker() {
       }
     },
     {
-      connection: getRedisConnection(),
+      connection: conn,
       concurrency: 5
     }
   );
 
-  _webhookWorker.on('failed', (job, error) => {
+  _webhookWorker.on('failed', (job: any, error: any) => {
     logError(`Job ${job?.id} failed:`, error);
   });
 

@@ -41,9 +41,7 @@ const _env = envSchema.parse(process.env);
 
 // runtime checks for required secrets in production
 if (_env.NODE_ENV === 'production') {
-  if (!_env.AUTH_JWT_SECRET) {
-    throw new Error('AUTH_JWT_SECRET must be set in production');
-  }
+  // Only enforce payment-related secrets here per payments SDK-only refactor
   if (!_env.DODO_PAYMENTS_API_KEY) {
     throw new Error('DODO_PAYMENTS_API_KEY must be set in production');
   }
