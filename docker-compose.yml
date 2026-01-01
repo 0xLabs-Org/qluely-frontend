@@ -1,15 +1,26 @@
+version: '3.8'
+
 services:
-  database:
-    image: postgres:16
-    container_name: postgres_local
+  db:
+    image: postgres:15
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: qluely
+    volumes:
+      - db-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
     restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+
 volumes:
-  postgres_data:
+  db-data:
+  redis-data:
