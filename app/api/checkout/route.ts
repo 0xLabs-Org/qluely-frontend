@@ -1,4 +1,3 @@
-// app/api/checkout/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { env } from '@/lib/env';
 import { prisma } from '@/lib/prisma';
@@ -7,7 +6,7 @@ import { logError } from '@/lib/logger';
 import { buildReturnUrl, createCheckoutSession } from '@/lib/payments';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { logInfo } from '@/lib/logger';
-import { getTokenFromReq, verifyToken } from '@/lib/auth';
+import { getTokenFromReq, verifySessionToken } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,12 +36,14 @@ export async function POST(request: NextRequest) {
 
     // Require authentication for checkout flow. If missing, instruct client to redirect to sign-in.
     const token = getTokenFromReq(request);
-    const payload = token ? verifyToken(token) : null;
-    if (!payload || !payload.sub) {
+    const payload = token ? await verifySessionToken(token) : null;
+    // `createSessionToken` stores `{ userId, sessionId }` in the JWT payload.
+    // Support both shapes: prefer `userId`, fall back to `sub` for compatibility.
+    const userId = (payload as any)?.userId ?? (payload as any)?.sub;
+    if (!userId) {
       const loginUrl = `/signin?return_to=${encodeURIComponent(`/checkout?plan=${plan}`)}`;
       return NextResponse.json({ error: 'auth_required', login_url: loginUrl }, { status: 401, headers: securityHeaders });
     }
-    const userId = payload.sub as string;
 
     // 2. Get user & account
     const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
     // 6. Create checkout session with DodoPayments SDK (via lib/payments)
     let checkoutSession: { session_id: string; checkout_url: string } | null = null;
     try {
-      checkoutSession = await createCheckoutSession(planConfig.productId, localSession.id, { quantity: 1, metadata: { plan_slug: plan } });
+      checkoutSession = await createCheckoutSession(planConfig.productId, localSession.id, { quantity: 1, metadata: { app_user_id: user.id, plan_slug: plan } });
     } catch (err) {
       logError('createCheckoutSession failed:', err);
       // fallback to local return URL
@@ -105,7 +106,9 @@ export async function POST(request: NextRequest) {
     logInfo('Checkout session created', { userId: user.id, sessionId: localSession.id });
     return NextResponse.json(
       {
+        // legacy/snake_case for server logs and camelCase for client usage
         checkout_url: checkoutSession.checkout_url,
+        checkoutUrl: checkoutSession.checkout_url,
         session_id: localSession.id,
         expires_at: localSession.expiresAt.toISOString(),
         amount: {

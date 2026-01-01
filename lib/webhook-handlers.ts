@@ -75,13 +75,13 @@ export async function handlePaymentSucceeded(payload: any) {
       }
     });
 
-    // Create or update payment (idempotent by externalId)
+    // Create or update payment (idempotent by dodoPaymentId)
     const payment = await prisma.payment.upsert({
-      where: { externalId: id },
+      where: { dodoPaymentId: id },
       create: {
         userId,
         accountId: account.id,
-        externalId: id,
+        dodoPaymentId: id,
         amount: amountCents,
         status: 'succeeded',
         processedAt: new Date()
@@ -93,15 +93,25 @@ export async function handlePaymentSucceeded(payload: any) {
       }
     });
 
-    // If subscription payment, attach subscription id to account
-    if (subscription_id) {
+    // If subscription payment, attach subscription id to account and ensure subscription record
+    if (subscription_id || metadata?.plan_slug) {
       await prisma.account.update({
         where: { id: account.id },
         data: {
-          subscriptionId: subscription_id,
+          subscriptionId: subscription_id || undefined,
           planSlug: metadata?.plan_slug || account.planSlug
         }
       });
+
+      // Upsert subscription by userId and plan (find then create/update)
+      const planSlug = metadata?.plan_slug || account.planSlug || 'starter';
+      const existingSub = await prisma.subscription.findFirst({ where: { userId, plan: planSlug } });
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      if (existingSub) {
+        await prisma.subscription.update({ where: { id: existingSub.id }, data: { status: 'active', expiresAt, dodoSubId: subscription_id || existingSub.dodoSubId } });
+      } else {
+        await prisma.subscription.create({ data: { userId, plan: planSlug, status: 'active', expiresAt, dodoSubId: subscription_id || undefined } });
+      }
     }
 
     // Send email

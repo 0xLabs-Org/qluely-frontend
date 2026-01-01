@@ -26,6 +26,8 @@ model User {
   // Relations
   account       Account?
   payments      Payment[]
+  subscriptions Subscription[]
+  sessions      Session[]
   invoices      Invoice[]
   checkoutSessions CheckoutSession[]
   
@@ -74,7 +76,7 @@ model Payment {
   accountId    String
   
   // Payment gateway reference
-  externalId   String?   @unique  // Stripe/Dodo payment ID
+  dodoPaymentId String?   @unique  // Dodo payment ID
   
   amount       Int       // in cents
   status       String    @default("pending")  // pending, succeeded, failed
@@ -86,11 +88,43 @@ model Payment {
   
   user         User      @relation(fields: [userId], references: [id], onDelete: Restrict)
   account      Account   @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  subscription  Subscription? @relation(fields: [subscriptionId], references: [id])
+  subscriptionId String?
   
   @@index([userId])
   @@index([accountId])
   @@index([status])
-  @@index([externalId])
+  @@index([dodoPaymentId])
+}
+
+model Subscription {
+  id           String   @id @default(cuid())
+  userId       String
+  plan         String
+  status       String   @default("pending") // pending, active, cancelled
+  dodoSubId    String?  @unique
+  expiresAt    DateTime?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments     Payment[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Session {
+  id          String   @id @default(cuid())
+  userId      String
+  token       String   @unique
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Invoice {

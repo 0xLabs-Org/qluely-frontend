@@ -1,6 +1,7 @@
+export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { signToken, setAuthCookie } from '@/lib/auth';
+import { signIn, setAuthCookie } from '@/lib/auth';
 import { env } from '@/lib/env';
 import bcrypt from 'bcryptjs';
 
@@ -41,7 +42,8 @@ export async function POST(request: NextRequest) {
         user = await prisma.user.create({ data: { email, passwordHash: hashed } });
       }
 
-      const token = signToken({ sub: user.id, email: user.email });
+      // Use centralized signIn to create session and token
+      const { user: signedUser, token } = await signIn(email, password);
       const res = NextResponse.redirect(new URL(returnTo, env.NEXT_PUBLIC_BASE_URL).toString());
       setAuthCookie(res, token);
       return res;

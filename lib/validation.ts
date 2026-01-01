@@ -5,7 +5,9 @@ const checkoutRequestSchema = z.object({
   plan: z.enum(['starter', 'pro', 'premium', 'enterprise']),
   // Accept any string for userId so local/dev testing with placeholders works.
   // In production, user IDs should be validated against your auth system.
-  userId: z.string()
+  // Make `userId` optional: the server will obtain the authenticated user
+  // from the session token, so clients don't need to send it.
+  userId: z.string().optional()
 });
 
 export type CheckoutRequest = z.infer<typeof checkoutRequestSchema>;

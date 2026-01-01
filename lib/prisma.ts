@@ -12,7 +12,7 @@ if (env.NODE_ENV === "production" && !env.DATABASE_URL) {
 
 const globalForPrisma = globalThis as unknown as { prisma: any };
 
-const prismaOptions: ConstructorParameters<typeof PrismaClient>[0] = {
+const prismaOptions: any = {
   log: ["error", "warn"],
 };
 
