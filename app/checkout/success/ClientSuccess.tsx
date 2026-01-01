@@ -14,10 +14,10 @@ export default function ClientSuccess() {
         <p className="text-xl text-slate-300 mb-8">Your subscription is now active. Welcome!</p>
         <div className="space-y-4">
           <a
-            href="/dashboard"
+            href="/signin"
             className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700"
           >
-            Go to Dashboard
+            Go to Sign in
           </a>
           <p className="text-slate-400 text-sm">Session ID: {sessionId}</p>
         </div>

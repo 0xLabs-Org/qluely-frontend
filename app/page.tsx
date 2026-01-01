@@ -154,10 +154,8 @@ export default function QluelyLanding() {
               <button
                 aria-label="Upgrade to Pro"
                 onClick={async () => {
-                  // Prevent anonymous checkout from the public landing page.
-                  // Require users to sign in via Dashboard flow to start checkout.
-                  alert('Please sign in to your account to upgrade.');
-                  window.location.href = '/dashboard';
+                  // Route anonymous users to the sign-in page before checkout.
+                  window.location.href = '/signin';
                 }}
                 className="bg-white text-[#7C3AED] px-6 py-3 rounded-full border border-[#7C3AED] hover:bg-[#7C3AED]/5 transition-all w-full sm:w-auto max-w-xs"
               >
@@ -314,7 +312,7 @@ export default function QluelyLanding() {
                 Basic features for casual users
               </p>
               <div className="text-4xl sm:text-5xl font-bold text-[#7C3AED] mb-6">
-                $0
+                ₹0
               </div>
               <ul className="text-left text-[#64748B] mb-8 space-y-2">
                 <li>• Live notes for 1 meeting/month</li>
@@ -363,8 +361,7 @@ export default function QluelyLanding() {
               </ul>
               <button
                 onClick={async () => {
-                  alert('Please sign in to your account to upgrade.');
-                  window.location.href = '/dashboard';
+                  window.location.href = '/signin';
                 }}
                 className="w-full bg-linear-to-r from-[#7C3AED] to-[#EC4899] text-white px-6 py-3 rounded-full text-lg font-medium hover:shadow-[0_0_25px_rgba(124,58,237,0.4)] transition-all transform hover:scale-105"
               >

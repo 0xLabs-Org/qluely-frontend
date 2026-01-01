@@ -1,12 +1,14 @@
 // app/api/checkout/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { DodoPayments } from 'dodopayments';
+import { env } from '@/lib/env';
 import { prisma } from '@/lib/prisma';
 import { validateCheckoutRequest } from '@/lib/validation';
 import { logError } from '@/lib/logger';
 import { buildReturnUrl } from '@/lib/payments';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { logInfo } from '@/lib/logger';
+import { getTokenFromReq, verifyToken } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     // Basic rate limiting by IP to protect checkout endpoint
     const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
-    const rl = checkRateLimit(`checkout:${ip}`, 20, 60_000);
+    const rl = await checkRateLimit(`checkout:${ip}`, 20, 60_000);
     if (rl.limited) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429, headers: securityHeaders });
     }
@@ -32,37 +34,47 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: validation.error }, { status: 400, headers: securityHeaders });
     }
 
-    const { plan, userId } = validation.data;
+    const { plan } = validation.data;
 
-    if (!userId) {
-      return NextResponse.json({ error: 'userId is required in request body' }, { status: 400, headers: securityHeaders });
+    // Require authentication for checkout flow. If missing, instruct client to redirect to sign-in.
+    const token = getTokenFromReq(request);
+    const payload = token ? verifyToken(token) : null;
+    if (!payload || !payload.sub) {
+      const loginUrl = `/signin?return_to=${encodeURIComponent(`/checkout?plan=${plan}`)}`;
+      return NextResponse.json({ error: 'auth_required', login_url: loginUrl }, { status: 401, headers: securityHeaders });
     }
+    const userId = payload.sub as string;
 
     // 2. Get user & DodoPayments customer (require DB)
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { dodoCustomer: true }
-    });
+    const user = await prisma.user.findUnique({ where: { id: userId }, include: { dodoCustomer: true } });
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404, headers: securityHeaders });
     }
 
+    // Ensure payment provider config present
+    if (!env.DODO_PAYMENTS_API_KEY) {
+      logError('DodoPayments API key missing');
+      return NextResponse.json({ error: 'Payment provider not configured' }, { status: 502, headers: securityHeaders });
+    }
+
     // 3. Create DodoPayments customer if doesn't exist
     let dodoCustomerId = user.dodoCustomer?.dodoCustomerId;
     const dodoClient = new DodoPayments({
-      bearerToken: process.env.DODO_PAYMENTS_API_KEY!,
-      environment: (process.env.DODO_PAYMENTS_ENVIRONMENT || 'test_mode') as any
+      bearerToken: env.DODO_PAYMENTS_API_KEY!,
+      environment: (env.DODO_PAYMENTS_ENVIRONMENT || 'test_mode') as any
     });
 
     if (!dodoCustomerId) {
       try {
-        const customer: any = await dodoClient.customers.create({
+        type DodoCustomer = { id: string };
+        const customerRaw = await dodoClient.customers.create({
           email: user.email,
           name: user.name || 'User',
           metadata: { app_user_id: user.id }
         } as any);
 
+        const customer = (customerRaw as unknown) as DodoCustomer;
         dodoCustomerId = customer.id;
 
         await prisma.dodoCustomer.create({
@@ -81,8 +93,9 @@ export async function POST(request: NextRequest) {
 
     // 4. Get plan config
     const planConfig = getPlanConfig(plan);
-    if (!planConfig) {
-      return NextResponse.json({ error: 'Invalid plan' }, { status: 400, headers: securityHeaders });
+    if (!planConfig || !planConfig.productId) {
+      logError('Plan configuration missing or invalid', { plan });
+      return NextResponse.json({ error: 'Invalid plan configuration' }, { status: 500, headers: securityHeaders });
     }
 
     // 5. Create a local checkout session first so we can include our session id
@@ -102,9 +115,10 @@ export async function POST(request: NextRequest) {
     });
 
     // 6. Create checkout session with DodoPayments
-    let checkoutSession: any;
+    type DodoCheckoutSession = { session_id: string; checkout_url: string };
+    let checkoutSession: DodoCheckoutSession | null = null;
     try {
-      checkoutSession = await dodoClient.checkoutSessions.create({
+      const csRaw = await dodoClient.checkoutSessions.create({
         customer: { customer_id: dodoCustomerId! },
         product_cart: [
           {
@@ -118,6 +132,7 @@ export async function POST(request: NextRequest) {
           app_user_id: user.id
         }
       });
+      checkoutSession = csRaw as DodoCheckoutSession;
     } catch (err) {
       // If provider creation fails, remove the local session to avoid dangling records
       logError('Dodo checkout session creation failed:', err);
@@ -130,8 +145,8 @@ export async function POST(request: NextRequest) {
     await prisma.checkoutSession.update({
       where: { id: localSession.id },
       data: {
-        dodoSessionId: checkoutSession.session_id,
-        checkoutUrl: checkoutSession.checkout_url
+        dodoSessionId: checkoutSession!.session_id,
+        checkoutUrl: checkoutSession!.checkout_url
       }
     });
 
@@ -156,21 +171,21 @@ export async function POST(request: NextRequest) {
 }
 
 function getPlanConfig(plan: string) {
-  const configs: Record<string, any> = {
+    const configs: Record<string, any> = {
     starter: {
-      productId: process.env.DODO_PRODUCT_ID_STARTER!,
+      productId: env.DODO_PRODUCT_ID_STARTER!,
       priceCents: 14900
     },
     pro: {
-      productId: process.env.DODO_PRODUCT_ID_PRO!,
+      productId: env.DODO_PRODUCT_ID_PRO!,
       priceCents: 49900
     },
     premium: {
-      productId: process.env.DODO_PRODUCT_ID_PREMIUM!,
+      productId: env.DODO_PRODUCT_ID_PREMIUM!,
       priceCents: 129900
     },
     enterprise: {
-      productId: process.env.DODO_PRODUCT_ID_ENTERPRISE!,
+      productId: env.DODO_PRODUCT_ID_ENTERPRISE!,
       priceCents: 199900
     }
   };

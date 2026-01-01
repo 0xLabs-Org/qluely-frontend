@@ -6,7 +6,8 @@ import { prisma } from './prisma';
 import { logError, logInfo } from './logger';
 
 // Prefer explicit REDIS_URL, fallback to localhost (docker compose exposes port)
-const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+import { env } from './env';
+const redisUrl = env.REDIS_URL || 'redis://localhost:6379';
 
 let redisConnection: Redis | null = null;
 export function getRedisConnection() {

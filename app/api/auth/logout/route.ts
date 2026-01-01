@@ -1,6 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { clearAuthCookie } from '@/lib/auth';
 
-export async function POST() {
-  // This route was removed — authentication demo is disabled.
-  return NextResponse.json({ error: 'Authentication routes removed' }, { status: 410 });
+export async function POST(_: NextRequest) {
+  const res = NextResponse.json({ ok: true });
+  clearAuthCookie(res);
+  return res;
 }
