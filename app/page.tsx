@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { MessageSquare, FileText, Eye, Mail } from "lucide-react";
 import { motion } from "motion/react";
 import { useOS } from "@/hooks/useOs";
+import Navigation from "@/components/Navigation";
 
 const features = [
   {
@@ -46,24 +47,7 @@ export default function QluelyLanding() {
 
   return (
     <div className="min-h-screen bg-black text-white font-sans selection:bg-[#00D4FF] selection:text-black overflow-x-hidden">
-      {/* --- Navigation --- */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
-          <div className="text-[#7C3AED] tracking-wider text-lg sm:text-xl">
-            QLUELY
-          </div>
-          <button
-            className="bg-linear-to-r from-[#7C3AED] to-[#EC4899] text-white px-4 sm:px-8 py-2 sm:py-3 text-sm sm:text-base rounded-full hover:shadow-[0_0_25px_rgba(124,58,237,0.4)] transition-all transform hover:scale-105"
-            onClick={() => {
-              const url = ApplicationURL[os as "macOS" | "Linux" | "Windows"];
-              window.open(url);
-            }}
-          >
-            Download Free
-          </button>
-        </div>
-      </nav>
-
+      <Navigation />
       <section className="min-h-[70vh] sm:min-h-[80vh] flex items-center justify-center px-4 sm:px-6 pt-24 sm:pt-20 pb-12 sm:pb-0 bg-linear-to-b from-white via-[#F8F9FA] to-white">
         <div className="max-w-5xl mx-auto text-center">
           <motion.h1
