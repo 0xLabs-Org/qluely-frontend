@@ -97,7 +97,7 @@ const FeatureSection = () => {
                   />
 
                   {/* Fading overlay to blend grid into white at the bottom */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white/80" />
+                  <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-white/80" />
 
                   {/* Icon Container */}
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -111,7 +111,7 @@ const FeatureSection = () => {
                       {/* The White Box */}
                       <div className="relative w-20 h-20 bg-white rounded-2xl shadow-xl flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
                         <div
-                          className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br ${
+                          className={`w-12 h-12 rounded-xl flex items-center justify-center bg-linear-to-br ${
                             feature.gradient || "from-gray-700 to-black"
                           }`}
                         >
@@ -123,7 +123,7 @@ const FeatureSection = () => {
                 </div>
 
                 {/* Bottom Half: Text Content */}
-                <div className="p-6 pt-8 text-center flex-grow flex flex-col">
+                <div className="p-6 pt-8 text-center grow flex flex-col">
                   <h3 className="text-[#1A1F36] font-bold text-xl mb-3">
                     {feature.title}
                   </h3>
