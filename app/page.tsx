@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { MessageSquare, FileText, Eye, Mail } from "lucide-react";
 import { motion } from "motion/react";
 import { useOS } from "@/hooks/useOs";
+
 const features = [
   {
     title: "Live Notes",
@@ -30,26 +31,6 @@ const features = [
     color: "#EC4899",
   },
 ];
-const testimonials = [
-  {
-    quote:
-      "Qluely has transformed how I handle back-to-back meetings. I never miss a detail, and no one knows I'm using it.",
-    author: "Sarah Chen",
-    role: "Product Manager at TechCorp",
-  },
-  {
-    quote:
-      "The real-time answers feature is a game-changer. It's like having a superpower that's completely invisible.",
-    author: "Michael Rodriguez",
-    role: "Sales Director at GrowthLabs",
-  },
-  {
-    quote:
-      "Finally, an AI meeting assistant that actually stays hidden. The undetectable overlay is worth every penny.",
-    author: "Emily Watson",
-    role: "Consultant at Strategy Partners",
-  },
-];
 
 export const ApplicationURL: Record<"macOS" | "Linux" | "Windows", string> = {
   macOS:
@@ -61,36 +42,8 @@ export const ApplicationURL: Record<"macOS" | "Linux" | "Windows", string> = {
 };
 
 export default function QluelyLanding() {
-  const [current, setCurrent] = useState(0);
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-  const [autoPlay, setAutoPlay] = useState(true);
   const os = useOS();
 
-  const next = () => {
-    setCurrent((prev) => (prev + 1) % testimonials.length);
-  };
-
-  const prev = () => {
-    setCurrent(
-      (prev) => (prev - 1 + testimonials.length) % testimonials.length
-    );
-  };
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setEmail("");
-      setSubmitted(false);
-    }, 3000);
-  };
-
-  // Testimonials autoplay
-  useEffect(() => {
-    if (!autoPlay) return;
-    const id = setInterval(() => next(), 5000);
-    return () => clearInterval(id);
-  }, [autoPlay]);
   return (
     <div className="min-h-screen bg-black text-white font-sans selection:bg-[#00D4FF] selection:text-black overflow-x-hidden">
       {/* --- Navigation --- */}
@@ -144,7 +97,8 @@ export default function QluelyLanding() {
                 aria-label={`Download Qluely for ${os}`}
                 className="bg-linear-to-r from-[#7C3AED] to-[#EC4899] text-white px-6 sm:px-10 py-3 sm:py-4 text-lg sm:text-xl rounded-full hover:shadow-[0_0_35px_rgba(124,58,237,0.5)] transition-all transform hover:scale-105 w-full sm:w-auto max-w-xs sm:max-w-none"
                 onClick={() => {
-                  const url = ApplicationURL[os as "macOS" | "Linux" | "Windows"];
+                  const url =
+                    ApplicationURL[os as "macOS" | "Linux" | "Windows"];
                   window.open(url);
                 }}
               >
@@ -155,7 +109,7 @@ export default function QluelyLanding() {
                 aria-label="Upgrade to Pro"
                 onClick={async () => {
                   // Route anonymous users to the sign-in page before checkout.
-                  window.location.href = '/signin';
+                  window.location.href = "/signin";
                 }}
                 className="bg-white text-[#7C3AED] px-6 py-3 rounded-full border border-[#7C3AED] hover:bg-[#7C3AED]/5 transition-all w-full sm:w-auto max-w-xs"
               >
@@ -167,63 +121,6 @@ export default function QluelyLanding() {
               Works with Zoom, Teams, Meet. No traces left behind.
             </p>
           </motion.div>
-        </div>
-      </section>
-
-      {/* --- Testimonials --- */}
-      <section className="py-12 sm:py-16 px-4 sm:px-6 bg-white">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.h3
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-2xl sm:text-3xl font-semibold text-[#1A1F36] mb-6"
-          >
-            Loved by early adopters
-          </motion.h3>
-
-          <motion.blockquote
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="bg-[#F8F9FA] rounded-2xl p-8 sm:p-10 text-left shadow-sm"
-          >
-            <p className="text-[#1A1F36] text-lg sm:text-xl mb-4">“{testimonials[current].quote}”</p>
-            <footer className="text-sm text-[#64748B]">
-              — <span className="font-medium text-[#111827]">{testimonials[current].author}</span>, {testimonials[current].role}
-            </footer>
-          </motion.blockquote>
-
-          <div className="flex items-center justify-center gap-4 mt-6">
-            <button
-              aria-label="Previous testimonial"
-              onClick={() => { setAutoPlay(false); prev(); }}
-              className="px-3 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50"
-            >
-              ‹
-            </button>
-
-            <div className="flex items-center gap-2">
-              {testimonials.map((_, i) => (
-                <button
-                  key={i}
-                  aria-label={`Go to testimonial ${i + 1}`}
-                  onClick={() => { setAutoPlay(false); setCurrent(i); }}
-                  className={`w-3 h-3 rounded-full ${i === current ? 'bg-[#7C3AED]' : 'bg-gray-300'}`}
-                />
-              ))}
-            </div>
-
-            <button
-              aria-label="Next testimonial"
-              onClick={() => { setAutoPlay(false); next(); }}
-              className="px-3 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50"
-            >
-              ›
-            </button>
-          </div>
         </div>
       </section>
 
@@ -322,7 +219,8 @@ export default function QluelyLanding() {
               <button
                 aria-label="Download free Qluely"
                 onClick={() => {
-                  const url = ApplicationURL[os as "macOS" | "Linux" | "Windows"];
+                  const url =
+                    ApplicationURL[os as "macOS" | "Linux" | "Windows"];
                   window.open(url);
                 }}
                 className="w-full bg-linear-to-r from-[#7C3AED] to-[#EC4899] text-white px-6 py-3 rounded-full text-lg font-medium hover:shadow-[0_0_25px_rgba(124,58,237,0.35)] transition-all transform hover:scale-105"
@@ -361,7 +259,7 @@ export default function QluelyLanding() {
               </ul>
               <button
                 onClick={async () => {
-                  window.location.href = '/signin';
+                  window.location.href = "/signin";
                 }}
                 className="w-full bg-linear-to-r from-[#7C3AED] to-[#EC4899] text-white px-6 py-3 rounded-full text-lg font-medium hover:shadow-[0_0_25px_rgba(124,58,237,0.4)] transition-all transform hover:scale-105"
               >
@@ -372,62 +270,23 @@ export default function QluelyLanding() {
         </div>
       </section>
 
-      <footer className="py-12 sm:py-20 px-4 sm:px-6 border-t border-gray-200 bg-white">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-10 sm:mb-12">
-            <h2 className="text-transparent bg-clip-text bg-linear-to-r from-[#7C3AED] via-[#EC4899] to-[#10B981] text-3xl sm:text-4xl md:text-5xl mb-4 sm:mb-6 px-2">
-              Get Qluely Now – Free Trial
-            </h2>
-            <p className="text-[#64748B] text-lg sm:text-xl mb-6 sm:mb-8 px-2">
-              Join thousands of professionals staying ahead in meetings
-            </p>
-
-            <form
-              onSubmit={handleSubmit}
-              className="flex flex-col sm:flex-row gap-3 sm:gap-4 max-w-2xl mx-auto"
-            >
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                required
-                className="flex-1 bg-[#F8F9FA] border border-gray-300 rounded-full px-5 sm:px-6 py-3 sm:py-4 text-[#1A1F36] placeholder-[#64748B] focus:outline-none focus:border-[#7C3AED] focus:bg-white transition-all text-base"
-              />
-              <button
-                type="submit"
-                className="bg-linear-to-r from-[#7C3AED] to-[#EC4899] text-white px-8 sm:px-10 py-3 sm:py-4 rounded-full hover:shadow-[0_0_30px_rgba(124,58,237,0.5)] transition-all transform hover:scale-105 whitespace-nowrap text-base sm:text-lg"
-              >
-                {submitted ? "Subscribed!" : "Start Free Trial"}
-              </button>
-            </form>
-
-            {submitted && (
-              <p className="text-[#10B981] mt-4 text-sm sm:text-base">
-                Thank you! Check your email for the download link.
-              </p>
-            )}
-          </div>
-
-          <div className="border-t border-gray-200 pt-6 sm:pt-8 text-center">
-            <div className="text-[#7C3AED] text-xl sm:text-2xl mb-3 sm:mb-4 tracking-wider">
-              QLUELY
-            </div>
-            <p className="text-[#64748B] text-sm sm:text-base">
-              &copy; {new Date().getFullYear()} Qluely. All rights reserved.
-            </p>
-            <div className="flex justify-center gap-4 sm:gap-6 mt-3 sm:mt-4 text-[#64748B] text-sm sm:text-base">
-              <a href="#" className="hover:text-[#7C3AED] transition-colors" aria-label="Privacy policy">
-                Privacy
-              </a>
-              <a href="#" className="hover:text-[#7C3AED] transition-colors" aria-label="Terms of service">
-                Terms
-              </a>
-              <a href="#" className="hover:text-[#7C3AED] transition-colors" aria-label="Contact support">
-                Contact
-              </a>
+      <footer className="py-12 sm:py-20 px-4 sm:px-6 border-t border-gray-200 bg-white text-black relative">
+        <div className="max-w-5xl mx-auto flex flex-col justify-around items-center gap-8">
+          <div className="w-full flex justify-between mx-auto">
+            <span className="cursor-pointer text-4xl font-medium">Qluely</span>
+            <div className="flex flex-col gap-2 ">
+              <span className="text-sm text-black/40 font-medium">Social</span>
+              <span className="text-black/60 hover:text-black/90 cursor-pointer">
+                Instagram
+              </span>
+              <span className="text-black/60 hover:text-black/90 cursor-pointer">
+                Twitter
+              </span>
             </div>
           </div>
+          <span className="text-black/40 absolute bottom-5">
+            &copy; 2026 Qluely. All rights reserved.
+          </span>
         </div>
       </footer>
     </div>
