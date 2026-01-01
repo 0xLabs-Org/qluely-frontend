@@ -12,13 +12,13 @@ export default function Navigation({ className }: NavigationProps) {
   return (
     <nav
       className={cn(
-        "max-w-5xl mx-auto flex items-center justify-between rounded-full shadow-sm border border-black/10 bg-white/80 backdrop-blur-sm",
+        "mx-auto flex items-center justify-between shadow-sm border border-black/10 bg-bg-light backdrop-blur-sm",
         className
       )}
     >
       <div className="flex gap-2 justify-center items-center cursor-pointer">
         <Image src={logo} width={30} height={30} alt="logo" />
-        <span className="text-black font-bold">Qluely.in</span>
+        <span className="text-black font-bold">Qluely</span>
       </div>
       <div className="flex gap-10 text-black text-sm">
         <span className="hover:text-black/70 cursor-pointer">Features</span>
@@ -28,7 +28,10 @@ export default function Navigation({ className }: NavigationProps) {
         <span className="hover:text-black/70 cursor-pointer">FAQ</span>
       </div>
       <div className="flex gap-2">
-        <AnimatedButton className="rounded-full py-1" variant="ripple">
+        <AnimatedButton
+          className="rounded-full py-1 bg-accent"
+          variant="ripple"
+        >
           Login
         </AnimatedButton>
         <AnimatedButton

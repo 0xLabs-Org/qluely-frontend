@@ -1,12 +1,13 @@
-"use client"
+"use client";
 
-import React, { MouseEvent, useEffect, useState } from "react"
+import React, { MouseEvent, useEffect, useState } from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
-interface RippleButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  rippleColor?: string
-  duration?: string
+interface RippleButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  rippleColor?: string;
+  duration?: string;
 }
 
 export const RippleButton = React.forwardRef<
@@ -26,40 +27,40 @@ export const RippleButton = React.forwardRef<
   ) => {
     const [buttonRipples, setButtonRipples] = useState<
       Array<{ x: number; y: number; size: number; key: number }>
-    >([])
+    >([]);
 
     const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-      createRipple(event)
-      onClick?.(event)
-    }
+      createRipple(event);
+      onClick?.(event);
+    };
 
     const createRipple = (event: MouseEvent<HTMLButtonElement>) => {
-      const button = event.currentTarget
-      const rect = button.getBoundingClientRect()
-      const size = Math.max(rect.width, rect.height)
-      const x = event.clientX - rect.left - size / 2
-      const y = event.clientY - rect.top - size / 2
+      const button = event.currentTarget;
+      const rect = button.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      const x = event.clientX - rect.left - size / 2;
+      const y = event.clientY - rect.top - size / 2;
 
-      const newRipple = { x, y, size, key: Date.now() }
-      setButtonRipples((prevRipples) => [...prevRipples, newRipple])
-    }
+      const newRipple = { x, y, size, key: Date.now() };
+      setButtonRipples((prevRipples) => [...prevRipples, newRipple]);
+    };
 
     useEffect(() => {
       if (buttonRipples.length > 0) {
-        const lastRipple = buttonRipples[buttonRipples.length - 1]
+        const lastRipple = buttonRipples[buttonRipples.length - 1];
         const timeout = setTimeout(() => {
           setButtonRipples((prevRipples) =>
             prevRipples.filter((ripple) => ripple.key !== lastRipple.key)
-          )
-        }, parseInt(duration))
-        return () => clearTimeout(timeout)
+          );
+        }, parseInt(duration));
+        return () => clearTimeout(timeout);
       }
-    }, [buttonRipples, duration])
+    }, [buttonRipples, duration]);
 
     return (
       <button
         className={cn(
-          "bg-background text-primary relative flex cursor-pointer items-center justify-center overflow-hidden rounded-lg border-2 px-4 py-2 text-center",
+          "text-primary relative flex cursor-pointer items-center justify-center overflow-hidden rounded-lg border-2 px-4 py-2 text-center",
           className
         )}
         onClick={handleClick}
@@ -84,8 +85,8 @@ export const RippleButton = React.forwardRef<
           ))}
         </span>
       </button>
-    )
+    );
   }
-)
+);
 
-RippleButton.displayName = "RippleButton"
+RippleButton.displayName = "RippleButton";

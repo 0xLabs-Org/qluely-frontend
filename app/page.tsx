@@ -1,8 +1,11 @@
 "use client";
-import { MessageSquare, FileText, Eye, Mail } from "lucide-react";
+import { MessageSquare, FileText, Eye, Mail, ArrowUpRight } from "lucide-react";
 import { motion } from "motion/react";
 import { useOS } from "@/hooks/useOs";
 import Navigation from "@/components/Navigation";
+import { AnimatedGradientText } from "@/components/AnimatedTextButton";
+import { Button } from "@/components/ui/button";
+import { HeroVideoDialog } from "@/components/ui/hero-video-dialog";
 
 const features = [
   {
@@ -45,78 +48,60 @@ export default function QluelyLanding() {
   const os = useOS();
 
   return (
-    <div className="min-h-screen font-sans overflow-x-hidden bg-white">
-      <div className="px-4 sm:px-6 pt-6">
-        <Navigation className="px-6 py-2" />
+    <div className="min-h-screen font-sans overflow-x-hidden bg-bg-light">
+      {/* Navigation */}
+      {/* <div className="w-full px-4 sm:px-6 pt-6 z-20"> */}
+      <Navigation className="px-6 py-2 z-1" />
+      {/* </div> */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="absolute -top-1/2 -left-1/3 w-1/2 h-full border-2 border-dotted border-[#2b8ecc]/10 rounded-2xl" />
+        <div className="absolute top-1/3 -right-1/4 w-1/2 h-1/2 border-2 border-dotted border-[#2b8ecc]/10 rounded-2xl" />
+        <div className="absolute top-1/3 -left-1/4 w-1/2 h-1/2 border-2 border-[#2b8ecc]/10 rounded-2xl" />
+        <div className="absolute -top-1/2 -right-1/3 w-1/2 h-full border-2 border-[#2b8ecc]/10 rounded-2xl" />
       </div>
-      <section className="min-h-[70vh] sm:min-h-[80vh] flex items-center justify-center px-4 sm:px-6 pt-8 pb-12 sm:pb-0 bg-gradient-to-b from-white via-[#F8F9FA] to-white">
-        <div className="max-w-5xl mx-auto text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-transparent bg-clip-text bg-gradient-to-r from-[#7C3AED] via-[#EC4899] to-[#10B981] uppercase tracking-[0.05em] text-4xl sm:text-5xl md:text-7xl leading-[1.1] mb-6 sm:mb-8 px-2"
-          >
-            #1 undetectable AI for meetings
-          </motion.h1>
+      <section className="relative  min-h-screen overflow-hidden flex flex-col items-center justify-center px-4 sm:px-6  py-20">
+        {/* Content */}
+        <div className="relative z-10 flex flex-col items-center gap-6 text-center">
+          <span className="pointer-events-none bg-linear-to-b from-primary to-primary/70 bg-clip-text text-6xl sm:text-7xl leading-none font-semibold text-transparent">
+            Undetectable AI
+          </span>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-[#1A1F36] text-lg sm:text-2xl md:text-[32px] leading-[1.4] mb-8 sm:mb-10 max-w-4xl mx-auto px-2"
-          >
-            Qluely takes perfect meeting notes and gives real-time answers, all
-            while completely undetectable
-          </motion.p>
+          <span className="pointer-events-none bg-linear-to-tl from-[#2b8ecc] to-[#2b8ecc]/50 bg-clip-text text-6xl sm:text-7xl leading-none font-semibold text-transparent">
+            for Meetings
+          </span>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="flex flex-col items-center gap-4 sm:gap-6 px-4"
-          >
-            {os}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-center">
-              <button
-                aria-label={`Download Qluely for ${os}`}
-                className="bg-gradient-to-r from-[#7C3AED] to-[#EC4899] text-white px-6 sm:px-10 py-3 sm:py-4 text-lg sm:text-xl rounded-full hover:shadow-[0_0_35px_rgba(124,58,237,0.5)] transition-all transform hover:scale-105 w-full sm:w-auto max-w-xs sm:max-w-none"
-                onClick={() => {
-                  const url =
-                    ApplicationURL[os as "macOS" | "Linux" | "Windows"];
-                  window.open(url);
-                }}
-              >
-                Download for {os}
-              </button>
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-black/60 font-medium">
+              Qluely is your private, real-time AI meeting co-pilot.
+            </span>
+            <span className="text-black/60 font-medium">
+              Just accurate answers, quiet intelligence in the background.
+            </span>
+          </div>
 
-              <button
-                aria-label="Upgrade to Pro"
-                onClick={async () => {
-                  // Route anonymous users to the sign-in page before checkout.
-                  window.location.href = "/signin";
-                }}
-                className="bg-white text-[#7C3AED] px-6 py-3 rounded-full border border-[#7C3AED] hover:bg-[#7C3AED]/5 transition-all w-full sm:w-auto max-w-xs"
-              >
-                Upgrade to Pro
-              </button>
-            </div>
+          <Button className="flex gap-1 mt-4">
+            Try for Free
+            <ArrowUpRight />
+          </Button>
 
-            <p className="text-[#64748B] text-base sm:text-xl">
-              Works with Zoom, Teams, Meet. No traces left behind.
-            </p>
-          </motion.div>
+          <HeroVideoDialog
+            className="block dark:hidden mt-6 h-150 w-250"
+            animationStyle="from-center"
+            videoSrc="https://www.youtube.com/embed/qh3NGpYRG3I?si=4rb-zSdDkVK9qxxb"
+            thumbnailSrc="https://startup-template-sage.vercel.app/hero-light.png"
+            thumbnailAlt="Hero Video"
+          />
         </div>
       </section>
 
-      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-white">
+      <section className="py-16 sm:py-24 px-4 sm:px-6 ">
         <div className="max-w-7xl mx-auto">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-transparent bg-clip-text bg-gradient-to-r from-[#7C3AED] to-[#EC4899] text-center text-3xl sm:text-4xl md:text-5xl mb-10 sm:mb-16 px-2"
+            className="text-transparent bg-clip-text bg-linear-to-r from-[#7C3AED] to-[#EC4899] text-center text-3xl sm:text-4xl md:text-5xl mb-10 sm:mb-16 px-2"
           >
             Stay Ahead Without Breaking Focus
           </motion.h2>
@@ -132,7 +117,7 @@ export default function QluelyLanding() {
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   whileHover={{ scale: 1.05 }}
-                  className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 hover:shadow-[0_8px_30px_rgba(124,58,237,0.15)] hover:border-[#7C3AED]/30 transition-all"
+                  className=" border border-gray-200 rounded-2xl p-6 sm:p-8 hover:shadow-[0_8px_30px_rgba(124,58,237,0.15)] hover:border-[#7C3AED]/30 transition-all"
                 >
                   <div
                     className="w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mb-4 sm:mb-6"
@@ -166,7 +151,7 @@ export default function QluelyLanding() {
       </section>
 
       {/* --- Pricing Section --- */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-[#F8F9FA]">
+      <section className="py-16 sm:py-24 px-4 sm:px-6 ">
         <div className="max-w-6xl mx-auto">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
