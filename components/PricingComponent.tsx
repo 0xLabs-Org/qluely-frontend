@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Check, Sparkles, Zap, Box } from "lucide-react";
 import { clsx } from "clsx";
 import { cn } from "@/lib/utils";
+import { NumberTicker } from "./ui/number-ticker";
 
 const plans = [
   {
@@ -13,7 +14,7 @@ const plans = [
     monthlyPrice: 19,
     yearlyPrice: 228, // $15/mo billed yearly
     discountedPrice: 15,
-    discountedYearlyPrice: 160,
+    discountedYearlyPrice: 120,
     icon: Sparkles,
     color: "blue",
     gradient: "from-blue-50 to-indigo-50",
@@ -36,7 +37,7 @@ const plans = [
     monthlyPrice: 49,
     yearlyPrice: 588, // $15/mo billed yearly
     discountedPrice: 25,
-    discountedYearlyPrice: 300,
+    discountedYearlyPrice: 280,
     popular: true,
     icon: Zap,
     color: "amber",
@@ -60,7 +61,7 @@ const plans = [
     monthlyPrice: 65,
     yearlyPrice: 780, // $15/mo billed yearly
     discountedPrice: 55,
-    discountedYearlyPrice: 660,
+    discountedYearlyPrice: 600,
     icon: Box,
     color: "cyan",
     gradient: "from-cyan-50 to-blue-50",
@@ -191,12 +192,22 @@ const PricingComponent = () => {
                 {/* Price */}
                 <div className="flex items-baseline gap-1 mb-8">
                   <span className="text-5xl font-semibold text-slate-900">
-                    ${price}{" "}
-                    {billingCycle === "yearly" && (
-                      <span className="text-xl line-through">
-                        ${plan.monthlyPrice}
-                      </span>
-                    )}
+                    {billingCycle === "yearly" ? (
+                      <NumberTicker
+                        startValue={plan.monthlyPrice}
+                        value={price}
+                        direction="up"
+                        className="text-8xl font-medium tracking-tighter whitespace-pre-wrap text-black dark:text-white"
+                      />
+                    ) : (
+                      <NumberTicker
+                        startValue={plan.discountedPrice}
+                        direction="down"
+                        value={price}
+                        className="text-8xl font-medium tracking-tighter whitespace-pre-wrap text-black dark:text-white"
+                      />
+                    )}{" "}
+                    $
                   </span>
                   <span className="text-slate-400 font-medium">
                     / per month

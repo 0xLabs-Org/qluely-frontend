@@ -4,39 +4,10 @@ import "./globals.css";
 import { motion } from "motion/react";
 import { useOS } from "@/hooks/useOs";
 import Navigation from "@/components/Navigation";
-import logo from "../assets/logo_transparent.png";
 import { HeroVideoDialog } from "@/components/ui/hero-video-dialog";
 import FeatureSection from "@/components/Features";
 import Image from "next/image";
 import PricingComponent from "@/components/PricingComponent";
-
-const features = [
-  {
-    title: "Live Notes",
-    description: "Auto-transcribes and highlights key points in real-time.",
-    icon: FileText,
-    color: "#10B981",
-  },
-  {
-    title: "Instant Answers",
-    description:
-      "Ask anything, get context-aware responses without switching tabs.",
-    icon: MessageSquare,
-    color: "#F59E0B",
-  },
-  {
-    title: "Undetectable Overlay",
-    description: "Movable UI stays hidden from screen shares and participants.",
-    icon: Eye,
-    color: "#7C3AED",
-  },
-  {
-    title: "Smart Follow-Ups",
-    description: "Generate emails and action items post-meeting.",
-    icon: Mail,
-    color: "#EC4899",
-  },
-];
 
 export const ApplicationURL: Record<"macOS" | "Linux" | "Windows", string> = {
   macOS:
@@ -143,7 +114,7 @@ export default function QluelyLanding() {
         <div className="max-w-5xl mx-auto flex flex-col justify-around items-center gap-8">
           <div className="w-full flex flex-col md:flex-row justify-between mx-auto">
             <div className="flex gap-2 items-center cursor-pointer">
-              <Image src={logo} width={50} height={50} alt="logo" />
+              <Image src="/logo.png" width={50} height={50} alt="logo" />
               <span className="text-black font-bold text-4xl">Qluely</span>
             </div>
             <div className="flex flex-col gap-2 ">

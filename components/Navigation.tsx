@@ -1,5 +1,4 @@
 "use client";
-import logo from "../assets/logo_transparent.png";
 import Image from "next/image";
 import AnimatedButton from "./AnimatedButton";
 import { useState, useEffect } from "react";
@@ -40,7 +39,7 @@ export default function Navigation({ className }: NavigationProps) {
         )}
       >
         <div className="flex gap-2 items-center cursor-pointer">
-          <Image src={logo} width={30} height={30} alt="logo" />
+          <Image src="/logo.png" width={30} height={30} alt="logo" />
           <span className="text-black font-bold">Qluely</span>
         </div>
 
