@@ -1,7 +1,9 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 const envSchema = z.object({
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  NODE_ENV: z
+    .enum(["development", "production", "test"])
+    .default("development"),
 
   // Auth
   AUTH_JWT_SECRET: z.string().optional(),
@@ -9,7 +11,7 @@ const envSchema = z.object({
   // Dodo payments
   DODO_PAYMENTS_API_KEY: z.string().optional(),
   DODO_PAYMENTS_WEBHOOK_KEY: z.string().optional(),
-  DODO_PAYMENTS_ENVIRONMENT: z.string().default('test_mode'),
+  DODO_PAYMENTS_ENVIRONMENT: z.string().default("test_mode"),
   DODO_PAYMENTS_RETURN_URL: z.string().optional(),
 
   // Product ids
@@ -33,26 +35,30 @@ const envSchema = z.object({
   SMTP_FROM: z.string().optional(),
 
   // General
-  NEXT_PUBLIC_BASE_URL: z.string().optional()
+  NEXT_PUBLIC_BASE_URL: z.string().optional(),
 });
 
 // parse and validate
 const _env = envSchema.parse(process.env);
 
 // runtime checks for required secrets in production
-if (_env.NODE_ENV === 'production') {
+// Skip validation during Next.js build process
+if (
+  _env.NODE_ENV === "production" &&
+  process.env.NEXT_PHASE !== "phase-production-build"
+) {
   // Only enforce payment-related secrets here per payments SDK-only refactor
   if (!_env.DODO_PAYMENTS_API_KEY) {
-    throw new Error('DODO_PAYMENTS_API_KEY must be set in production');
+    throw new Error("DODO_PAYMENTS_API_KEY must be set in production");
   }
   if (!_env.DODO_PAYMENTS_WEBHOOK_KEY) {
-    throw new Error('DODO_PAYMENTS_WEBHOOK_KEY must be set in production');
+    throw new Error("DODO_PAYMENTS_WEBHOOK_KEY must be set in production");
   }
 }
 
 /* exported env is defined lower as `_exportedEnv` to ensure consistent typing */
 export type Env = {
-  NODE_ENV: 'development' | 'production' | 'test';
+  NODE_ENV: "development" | "production" | "test";
   AUTH_JWT_SECRET?: string;
   DODO_PAYMENTS_API_KEY?: string;
   DODO_PAYMENTS_WEBHOOK_KEY?: string;
@@ -91,7 +97,7 @@ export const _exportedEnv: Env = {
   SMTP_USER: _env.SMTP_USER,
   SMTP_PASS: _env.SMTP_PASS,
   SMTP_FROM: _env.SMTP_FROM,
-  NEXT_PUBLIC_BASE_URL: _env.NEXT_PUBLIC_BASE_URL
+  NEXT_PUBLIC_BASE_URL: _env.NEXT_PUBLIC_BASE_URL,
 };
 
 export const env = _exportedEnv;
@@ -104,16 +110,19 @@ export function getRequiredEnv(name: string): string {
   return v;
 }
 
-export function getOptionalEnv(name: string, fallback?: string): string | undefined {
+export function getOptionalEnv(
+  name: string,
+  fallback?: string
+): string | undefined {
   return process.env[name] ?? fallback;
 }
 
 export function ensureEnvPresent(names: string[]) {
   const missing = names.filter((n) => !process.env[n]);
   if (missing.length) {
-    const msg = `Missing required env vars: ${missing.join(', ')}`;
+    const msg = `Missing required env vars: ${missing.join(", ")}`;
     // In non-production, warn; in production throw
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === "production") {
       throw new Error(msg);
     } else {
       console.warn(msg);
