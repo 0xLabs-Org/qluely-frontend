@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
-import prisma, { type Prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { randomBytes } from "crypto";
 
 function generateReferralCode(userId: string, email: string): string {
