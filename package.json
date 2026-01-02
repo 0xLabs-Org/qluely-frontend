@@ -17,6 +17,8 @@
     "@prisma/client": "^7.1.0",
     "bcryptjs": "^2.4.3",
     "bullmq": "^5.66.4",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "dodopayments": "^2.13.1",
     "ioredis": "^5.8.2",
     "jsonwebtoken": "^9.0.1",
