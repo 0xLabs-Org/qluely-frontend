@@ -38,9 +38,11 @@ export default function Navigation({ className }: NavigationProps) {
           className
         )}
       >
-        <div className="flex gap-2 items-center cursor-pointer">
-          <Image src="/logo.png" width={30} height={30} alt="logo" />
-          <span className="text-black font-bold">Qluely</span>
+        <div className="cursor-pointer">
+          <a href="/" className="flex gap-2 items-center">
+            <Image src="/logo.png" width={30} height={30} alt="logo" />
+            <span className="text-black font-bold">Qluely</span>
+          </a>
         </div>
 
         {/* Desktop Links */}
