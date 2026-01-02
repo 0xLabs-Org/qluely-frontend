@@ -1,10 +1,10 @@
 "use client";
-import { cn } from "@/lib/utils";
 import logo from "../assets/logo_transparent.png";
 import Image from "next/image";
 import AnimatedButton from "./AnimatedButton";
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type NavigationProps = {
   className?: string;

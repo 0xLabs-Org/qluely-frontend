@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
   engineType = "client"
 }
 
@@ -7,28 +7,21 @@ datasource db {
   provider = "postgresql"
 }
 
-enum AccountTypes {
-  FREE
-  PREMIUM
-  PRO
-}
-
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  passwordHash  String    // bcrypt hashed password
-  name          String?
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  lastLoginAt   DateTime?
-  
-  // Relations
-  account       Account?
-  payments      Payment[]
-  invoices      Invoice[]
+  id               String            @id @default(cuid())
+  email            String            @unique
+  passwordHash     String
+  name             String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  lastLoginAt      DateTime?
+  account          Account?
   checkoutSessions CheckoutSession[]
-  
+  invoices         Invoice[]
+  payments         Payment[]
+  Session          Session[]
+  Subscription     Subscription[]
+
   @@index([email])
 }
 
@@ -36,81 +29,61 @@ model Account {
   id               String       @id @default(cuid())
   userId           String       @unique
   type             AccountTypes @default(FREE)
-  
-  // Subscription related
-  planSlug         String?      // 'starter', 'pro', 'premium'
-  status           String       @default("pending")  // pending, active, on_hold, cancelled
-  
-  // Billing dates
+  planSlug         String?
+  status           String       @default("pending")
   startedAt        DateTime?
   nextBillingDate  DateTime?
   cancelledAt      DateTime?
-  
-  // Credits system
   creditsRemaining Int          @default(15)
   creditsUsed      Int          @default(0)
-  
-  // Payment Gateway Integration
-  customerId       String?      @unique  // Stripe/Dodo customer ID
-  subscriptionId   String?      @unique  // External subscription ID
-  
+  customerId       String?      @unique
+  subscriptionId   String?      @unique
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
-  
   user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Relations
-  payments         Payment[]
   invoices         Invoice[]
-  
+  payments         Payment[]
+
   @@index([userId])
   @@index([status])
   @@index([customerId])
 }
 
 model Payment {
-  id           String    @id @default(cuid())
-  userId       String
-  accountId    String
-  
-  // Payment gateway reference
-  externalId   String?   @unique  // Stripe/Dodo payment ID
-  
-  amount       Int       // in cents
-  status       String    @default("pending")  // pending, succeeded, failed
-  
-  processedAt  DateTime?
-  
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  
-  user         User      @relation(fields: [userId], references: [id], onDelete: Restrict)
-  account      Account   @relation(fields: [accountId], references: [id], onDelete: Restrict)
-  
+  id             String        @id @default(cuid())
+  userId         String
+  accountId      String
+  amount         Int
+  status         String        @default("pending")
+  processedAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  dodoPaymentId  String?       @unique
+  subscriptionId String?
+  account        Account       @relation(fields: [accountId], references: [id])
+  Subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+  user           User          @relation(fields: [userId], references: [id])
+
   @@index([userId])
   @@index([accountId])
   @@index([status])
-  @@index([externalId])
+  @@index([dodoPaymentId])
 }
 
 model Invoice {
-  id           String    @id @default(cuid())
-  userId       String
-  accountId    String
-  
-  invoiceNumber String   @unique
-  totalAmount  Int       // in cents
-  status       String    @default("issued")  // issued, paid
-  
-  issuedAt     DateTime  @default(now())
-  paidAt       DateTime?
-  
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  
-  user         User      @relation(fields: [userId], references: [id], onDelete: Restrict)
-  account      Account   @relation(fields: [accountId], references: [id], onDelete: Restrict)
-  
+  id            String    @id @default(cuid())
+  userId        String
+  accountId     String
+  invoiceNumber String    @unique
+  totalAmount   Int
+  status        String    @default("issued")
+  issuedAt      DateTime  @default(now())
+  paidAt        DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  account       Account   @relation(fields: [accountId], references: [id])
+  user          User      @relation(fields: [userId], references: [id])
+
   @@index([userId])
   @@index([accountId])
   @@index([status])
@@ -120,34 +93,61 @@ model WebhookEvent {
   id           String    @id @default(cuid())
   webhookId    String    @unique
   eventType    String
-  status       String    @default("received")  // received, completed, failed
+  status       String    @default("received")
   payload      Json
-  
   processedAt  DateTime?
   errorMessage String?
-  
   createdAt    DateTime  @default(now())
-  
+
   @@index([eventType])
   @@index([status])
 }
 
 model CheckoutSession {
-  id           String    @id @default(cuid())
-  userId       String
-  
-  sessionId    String    @unique
-  planSlug     String
-  status       String    @default("pending")  // pending, completed, expired
-  
-  checkoutUrl  String
-  expiresAt    DateTime
-  
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  
-  user         User      @relation(fields: [userId], references: [id], onDelete: Restrict)
-  
+  id          String   @id @default(cuid())
+  userId      String
+  sessionId   String   @unique
+  planSlug    String
+  status      String   @default("pending")
+  checkoutUrl String
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id])
+
   @@index([userId])
   @@index([status])
+}
+
+model Session {
+  id        String   @id
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Subscription {
+  id        String    @id
+  userId    String
+  plan      String
+  status    String    @default("pending")
+  dodoSubId String?   @unique
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+  Payment   Payment[]
+  User      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([userId])
+}
+
+enum AccountTypes {
+  FREE
+  PREMIUM
+  PRO
 }

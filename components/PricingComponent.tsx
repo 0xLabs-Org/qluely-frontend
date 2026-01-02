@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Check, Sparkles, Zap, Box } from "lucide-react";
 import { clsx } from "clsx";
 import { cn } from "@/lib/utils";
+
 const plans = [
   {
     name: "Starter",

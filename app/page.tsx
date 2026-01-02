@@ -1,12 +1,5 @@
 "use client";
-import {
-  MessageSquare,
-  FileText,
-  Eye,
-  Mail,
-  ArrowUpRight,
-  Sparkle,
-} from "lucide-react";
+import { MessageSquare, FileText, Eye, Mail, ArrowUpRight } from "lucide-react";
 import "./globals.css";
 import { motion } from "motion/react";
 import { useOS } from "@/hooks/useOs";
