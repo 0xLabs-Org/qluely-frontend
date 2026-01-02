@@ -45,11 +45,25 @@ export default function Navigation({ className }: NavigationProps) {
 
         {/* Desktop Links */}
         <div className="hidden md:flex gap-10 text-black text-sm">
-          <span className="hover:text-black/70 cursor-pointer">Features</span>
-          <span className="hover:text-black/70 cursor-pointer">Pricing</span>
-          <span className="hover:text-black/70 cursor-pointer">Downloads</span>
-          <span className="hover:text-black/70 cursor-pointer">About</span>
-          <span className="hover:text-black/70 cursor-pointer">FAQ</span>
+          <a href="#features" className="hover:text-black/70 cursor-pointer">
+            Features
+          </a>
+
+          <a href="#pricing" className="hover:text-black/70 cursor-pointer">
+            Pricing
+          </a>
+
+          <a href="/downloads" className="hover:text-black/70 cursor-pointer">
+            Downloads
+          </a>
+
+          <a href="/about" className="hover:text-black/70 cursor-pointer">
+            About
+          </a>
+
+          <a href="#faq" className="hover:text-black/70 cursor-pointer">
+            FAQ
+          </a>
         </div>
 
         {/* Desktop Buttons */}
@@ -110,36 +124,45 @@ export default function Navigation({ className }: NavigationProps) {
           </div>
 
           <div className="flex flex-col gap-5 text-sm">
-            <span
+            <a
+              href="#features"
               className="hover:text-black/70 cursor-pointer"
               onClick={() => setOpen(false)}
             >
               Features
-            </span>
-            <span
+            </a>
+
+            <a
+              href="#pricing"
               className="hover:text-black/70 cursor-pointer"
               onClick={() => setOpen(false)}
             >
               Pricing
-            </span>
-            <span
+            </a>
+
+            <a
+              href="/downloads"
               className="hover:text-black/70 cursor-pointer"
               onClick={() => setOpen(false)}
             >
               Downloads
-            </span>
-            <span
+            </a>
+
+            <a
+              href="/about"
               className="hover:text-black/70 cursor-pointer"
               onClick={() => setOpen(false)}
             >
               About
-            </span>
-            <span
+            </a>
+
+            <a
+              href="#faq"
               className="hover:text-black/70 cursor-pointer"
               onClick={() => setOpen(false)}
             >
               FAQ
-            </span>
+            </a>
           </div>
 
           <div className="mt-8 flex flex-col gap-3">
