@@ -2,7 +2,6 @@ import { registerSchema } from "@/lib/zod/schema";
 import { AccountType, STATUS } from "@/lib/types";
 import { prisma } from "@/lib/prisma";
 import { generateToken } from "@/helper/auth";
-import { AccountTypes } from "@/lib/generated/prisma/client";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: Request) {
@@ -46,24 +45,6 @@ export async function POST(req: Request) {
     }
 
     // Validate coupon if provided
-    let accountType: AccountTypes = AccountTypes.FREE;
-    if (coupon) {
-      // TODO: Implement coupon validation logic
-      // For now, assume valid coupon gives premium account
-      const isValidCoupon = true; // Replace with actual validation
-      if (isValidCoupon) {
-        accountType = AccountTypes.PREMIUM;
-      } else {
-        return Response.json(
-          {
-            success: false,
-            error: true,
-            message: "Invalid coupon code",
-          },
-          { status: STATUS.BAD_REQUEST }
-        );
-      }
-    }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -75,7 +56,7 @@ export async function POST(req: Request) {
         password: hashedPassword,
         account: {
           create: {
-            type: accountType,
+            type: "FREE",
           },
         },
       },
