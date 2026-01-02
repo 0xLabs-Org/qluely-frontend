@@ -15,7 +15,6 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.1.0",
-    "@radix-ui/react-slot": "^1.2.4",
     "bcryptjs": "^2.4.3",
     "bullmq": "^5.66.4",
     "class-variance-authority": "^0.7.1",
@@ -24,7 +23,7 @@
     "ioredis": "^5.8.2",
     "jsonwebtoken": "^9.0.1",
     "lucide-react": "^0.556.0",
-    "motion": "^12.23.26",
+    "motion": "^12.23.25",
     "next": "^16.1.1",
     "nodemailer": "^7.0.12",
     "p-retry": "^7.1.1",
@@ -32,7 +31,6 @@
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "standardwebhooks": "^1.0.0",
-    "tailwind-merge": "^3.4.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
