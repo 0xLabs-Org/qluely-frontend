@@ -1,5 +1,5 @@
 "use client";
-import { MessageSquare, FileText, Eye, Mail, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Fullscreen } from "lucide-react";
 import "./globals.css";
 import { motion } from "motion/react";
 import { useOS } from "@/hooks/useOs";
@@ -8,6 +8,9 @@ import { HeroVideoDialog } from "@/components/ui/hero-video-dialog";
 import FeatureSection from "@/components/Features";
 import Image from "next/image";
 import PricingComponent from "@/components/PricingComponent";
+import { DotPattern } from "@/components/ui/dot-pattern";
+import { cn } from "@/lib/utils";
+import { FAQ } from "@/components/FAQ";
 
 export const ApplicationURL: Record<"macOS" | "Linux" | "Windows", string> = {
   macOS:
@@ -35,7 +38,10 @@ export default function QluelyLanding() {
       </div>
 
       {/* Hero Section */}
-      <section className="relative min-h-[90svh] md:min-h-screen overflow-hidden flex flex-col items-center justify-center px-4 sm:px-6 py-12 sm:py-20 ">
+      <section
+        id="hero-section"
+        className="relative min-h-[90svh] md:min-h-screen overflow-hidden flex flex-col items-center justify-center px-4 sm:px-6 py-12 sm:py-20 "
+      >
         {/* Content */}
         <div className="relative z-10 flex flex-col items-center gap-4 sm:gap-2 text-center max-w-4xl mx-auto">
           <span className="pointer-events-none bg-linear-to-b from-primary to-primary/70 bg-clip-text text-5xl sm:text-5xl md:text-7xl leading-tight font-semibold text-transparent">
@@ -86,31 +92,46 @@ export default function QluelyLanding() {
         </div>
       </section>
       {/* feature */}
-      <FeatureSection />
+      <FeatureSection id="features" />
 
       {/* --- Pricing Section --- */}
-      <PricingComponent />
+      <PricingComponent id="pricing" />
+
+      {/* FAQ Section */}
+      <FAQ className="min-h-[100svh]" />
 
       {/* CTA  */}
-      <div className="relative w-[80vw] h-40  md:h-70 md:w-7xl mx-auto bg-[#575dff] rounded-xl  mb-20 flex  justify-center items-center gap-5 overflow-hidden">
-        <div className="flex flex-col gap-5 justify-center items-center">
+      <section
+        className="relative w-[80vw] h-40  md:h-70 md:w-7xl mx-auto bg-linear-to-bl from-[#575dff] to-[#a8abdb] rounded-xl  mb-20 flex  justify-center items-center gap-5 overflow-hidden"
+        id="cta"
+      >
+        <DotPattern
+          width={20}
+          className={cn(
+            "[mask-image:radial-gradient(300px_circle_at_center,white,transparent)]",
+            "absolute top-0 left-0 z-0"
+          )}
+        />
+        <div className="flex flex-col gap-5 justify-center items-center z-1">
           <span className="text-xl md:text-4xl text-amber-50">
             Interview smarter, not harder.
           </span>
           <span className="text-xl md:text-4xl text-amber-50">
-            {" "}
             Get hired faster.
           </span>
         </div>
-        <div className="absolute bottom-0 right-0 hidden md:block">
-          <Image src="/model.png" alt="model" width={400} height={300} />
+        <div className="absolute -bottom-5 right-0 hidden md:block">
+          <Image src="/model.png" alt="model" width={450} height={300} />
         </div>
-        <div className="absolute bottom-0 -right-10 block sm:hidden overflow-hidden">
+        <div className="absolute -bottom-10 -right-10 block sm:hidden overflow-hidden">
           <Image src="/model.png" alt="model" width={150} height={100} />
         </div>
-      </div>
+      </section>
 
-      <footer className="py-12 sm:py-20 px-4 sm:px-6 border-t border-gray-200 bg-white text-black relative h-[50svh] md:h-[30svh]">
+      <footer
+        className="py-12 sm:py-20 px-4 sm:px-6 border-t border-gray-200 bg-white text-black relative h-[50svh] md:h-[30svh]"
+        id="footer"
+      >
         <div className="max-w-5xl mx-auto flex flex-col justify-around items-center gap-8">
           <div className="w-full flex flex-col md:flex-row justify-between mx-auto">
             <div className="flex gap-2 items-center cursor-pointer">

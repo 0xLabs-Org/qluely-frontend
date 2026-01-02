@@ -83,11 +83,17 @@ const plans = [
 const calculateDiscount = (original: number, discounted: number) => {
   return Math.round(((original - discounted) / original) * 100);
 };
-const PricingComponent = () => {
+type PricingProps = {
+  id?: string;
+};
+const PricingComponent = ({ id }: PricingProps) => {
   const [billingCycle, setBillingCycle] = useState("monthly"); // 'monthly' | 'yearly'
 
   return (
-    <section className="py-20 px-4 sm:px-6 bg-[#F8FAFC] min-h-screen flex flex-col justify-center">
+    <section
+      className="py-20 px-4 sm:px-6 bg-[#F8FAFC] min-h-screen flex flex-col justify-center"
+      id={id}
+    >
       <div className="max-w-7xl mx-auto w-full">
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-16 gap-8">

@@ -25,10 +25,12 @@ const features = [
     gradient: "from-pink-400 to-pink-600",
   },
 ];
-
-const FeatureSection = () => {
+type FeatureProps = {
+  id?: string;
+};
+const FeatureSection = ({ id }: FeatureProps) => {
   return (
-    <section className="py-20 px-4 sm:px-6 bg-bg-light overflow-hidden">
+    <section className="py-20 px-4 sm:px-6 bg-bg-light overflow-hidden" id={id}>
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row items-center lg:items-end justify-between mb-16 gap-8">
