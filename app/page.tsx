@@ -1,9 +1,10 @@
 "use client";
-import React, { useState, useEffect } from "react";
+
 import { MessageSquare, FileText, Eye, Mail } from "lucide-react";
 import { motion } from "motion/react";
 import { useOS } from "@/hooks/useOs";
 import Navigation from "@/components/Navigation";
+import "./globals.css";
 
 const features = [
   {
