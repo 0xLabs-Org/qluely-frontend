@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Qluely — Undetectable AI Assistant for Screens, Meetings & Workflows",
+  title: "Qluely | Undetectable AI Assistant for Meetings & Workflows",
   description:
     "Qluely is an undetectable AI assistant designed for real-time help during meetings, interviews, and work sessions. Invisible on screen recordings and screenshots. Built for speed, privacy, and productivity.",
   keywords: [
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     siteName: "Qluely",
     images: [
       {
-        url: "https://qluely.in/og.png",
+        url: "https://qluely.in/logo.png",
         width: 1200,
         height: 630,
         alt: "Qluely Undetectable AI Assistant",
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     title: "Qluely — Undetectable AI Assistant",
     description:
       "Real-time AI help that stays invisible on screen recordings and screenshots.",
-    images: ["https://qluely.in/og.png"],
+    images: ["https://qluely.in/logo.png"],
   },
   robots: {
     index: true,
@@ -63,10 +63,15 @@ export const metadata: Metadata = {
   },
 
   icons: {
-    icon: "/logo.png",
-    apple: "/logo.png",
-    shortcut: "/logo.png",
+    icon: [
+      { url: "/icons/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icons/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/favicon.ico" },
+    ],
+    apple: "/icons/apple-touch-icon.png",
+    shortcut: "/icons/favicon.ico",
   },
+  manifest: "/icons/site.webmanifest",
 };
 
 export default function RootLayout({
@@ -77,7 +82,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-x-hidden`}
       >
         {children}
       </body>
