@@ -1,12 +1,21 @@
 "use client";
-import { MessageSquare, FileText, Eye, Mail, ArrowUpRight } from "lucide-react";
+import {
+  MessageSquare,
+  FileText,
+  Eye,
+  Mail,
+  ArrowUpRight,
+  Sparkle,
+} from "lucide-react";
+import "./globals.css";
 import { motion } from "motion/react";
 import { useOS } from "@/hooks/useOs";
 import Navigation from "@/components/Navigation";
-import { AnimatedGradientText } from "@/components/AnimatedTextButton";
-import { Button } from "@/components/ui/button";
+import logo from "../assets/logo_transparent.png";
 import { HeroVideoDialog } from "@/components/ui/hero-video-dialog";
 import FeatureSection from "@/components/Features";
+import Image from "next/image";
+import PricingComponent from "@/components/PricingComponent";
 
 const features = [
   {
@@ -116,99 +125,34 @@ export default function QluelyLanding() {
       <FeatureSection />
 
       {/* --- Pricing Section --- */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6 ">
-        <div className="max-w-6xl mx-auto">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center text-3xl sm:text-4xl md:text-5xl mb-10 sm:mb-16 text-[#1A1F36] px-2"
-          >
-            Choose Your Plan
-          </motion.h2>
+      <PricingComponent />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
-            {/* Free Plan */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 text-center"
-            >
-              <h3 className="text-2xl sm:text-3xl font-bold text-[#1A1F36] mb-4">
-                Free
-              </h3>
-              <p className="text-[#64748B] mb-6">
-                Basic features for casual users
-              </p>
-              <div className="text-4xl sm:text-5xl font-bold text-[#7C3AED] mb-6">
-                ₹0
-              </div>
-              <ul className="text-left text-[#64748B] mb-8 space-y-2">
-                <li>• Live notes for 1 meeting/month</li>
-                <li>• Basic summaries</li>
-                <li>• Email follow-ups</li>
-              </ul>
-              <button
-                aria-label="Download free Qluely"
-                onClick={() => {
-                  const url =
-                    ApplicationURL[os as "macOS" | "Linux" | "Windows"];
-                  window.open(url);
-                }}
-                className="w-full bg-linear-to-r from-[#7C3AED] to-[#EC4899] text-white px-6 py-3 rounded-full text-lg font-medium hover:shadow-[0_0_25px_rgba(124,58,237,0.35)] transition-all transform hover:scale-105"
-              >
-                Download Free
-              </button>
-            </motion.div>
-
-            {/* Pro Plan */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="bg-white border-2 border-[#7C3AED] rounded-2xl p-6 sm:p-8 text-center relative"
-            >
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-[#7C3AED] text-white px-4 py-1 rounded-full text-sm font-medium">
-                Most Popular
-              </div>
-              <h3 className="text-2xl sm:text-3xl font-bold text-[#1A1F36] mb-4">
-                Pro
-              </h3>
-              <p className="text-[#64748B] mb-6">
-                Unlimited AI-powered meetings
-              </p>
-              <div className="text-4xl sm:text-5xl font-bold text-[#7C3AED] mb-2">
-                ₹749
-              </div>
-              <p className="text-[#64748B] mb-6">per month (INR)</p>
-              <ul className="text-left text-[#64748B] mb-8 space-y-2">
-                <li>• Unlimited meetings</li>
-                <li>• Real-time answers</li>
-                <li>• Undetectable overlay</li>
-                <li>• Smart follow-ups</li>
-                <li>• CRM integrations</li>
-              </ul>
-              <button
-                onClick={async () => {
-                  window.location.href = "/signin";
-                }}
-                className="w-full bg-linear-to-r from-[#7C3AED] to-[#EC4899] text-white px-6 py-3 rounded-full text-lg font-medium hover:shadow-[0_0_25px_rgba(124,58,237,0.4)] transition-all transform hover:scale-105"
-              >
-                Upgrade to Pro
-              </button>
-            </motion.div>
-          </div>
+      {/* CTA  */}
+      <div className="relative w-[80vw] h-40  md:h-70 md:w-7xl mx-auto bg-[#575dff] rounded-xl  mb-20 flex  justify-center items-center gap-5 overflow-hidden">
+        <div className="flex flex-col gap-5 justify-center items-center">
+          <span className="text-xl md:text-4xl text-amber-50">
+            Interview smarter, not harder.
+          </span>
+          <span className="text-xl md:text-4xl text-amber-50">
+            {" "}
+            Get hired faster.
+          </span>
         </div>
-      </section>
+        <div className="absolute bottom-0 right-0 hidden md:block">
+          <Image src="/model.png" alt="model" width={400} height={300} />
+        </div>
+        <div className="absolute bottom-0 -right-10 block sm:hidden overflow-hidden">
+          <Image src="/model.png" alt="model" width={150} height={100} />
+        </div>
+      </div>
 
-      <footer className="py-12 sm:py-20 px-4 sm:px-6 border-t border-gray-200 bg-white text-black relative">
+      <footer className="py-12 sm:py-20 px-4 sm:px-6 border-t border-gray-200 bg-white text-black relative h-[50svh] md:h-[30svh]">
         <div className="max-w-5xl mx-auto flex flex-col justify-around items-center gap-8">
-          <div className="w-full flex justify-between mx-auto">
-            <span className="cursor-pointer text-4xl font-medium">Qluely</span>
+          <div className="w-full flex flex-col md:flex-row justify-between mx-auto">
+            <div className="flex gap-2 items-center cursor-pointer">
+              <Image src={logo} width={50} height={50} alt="logo" />
+              <span className="text-black font-bold text-4xl">Qluely</span>
+            </div>
             <div className="flex flex-col gap-2 ">
               <span className="text-sm text-black/40 font-medium">Social</span>
               <span className="text-black/60 hover:text-black/90 cursor-pointer">

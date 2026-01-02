@@ -83,11 +83,13 @@
       opacity: 0;
     }
   }
-  --animate-gradient: gradient 8s linear infinite
-;
+  --animate-gradient: gradient 8s linear infinite;
   @keyframes gradient {
-  to {
-    background-position: var(--bg-size, 300%) 0;}}}
+    to {
+      background-position: var(--bg-size, 300%) 0;
+    }
+  }
+}
 
 /* In globals.css */
 @keyframes fadeInUp {
