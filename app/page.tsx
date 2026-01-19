@@ -26,10 +26,10 @@ export default function QluelyLanding() {
   const os = useOS();
 
   return (
-    <div className="min-h-screen font-sans overflow-x-hidden bg-bg-light">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       {/* Navigation */}
       {/* <div className="w-full px-4 sm:px-6 pt-6 z-20"> */}
-      <Navigation className="px-6 py-2 z-1" />
+      <Navigation className="px-6 py-2 relative z-50" />
       {/* </div> */}
       <div className="absolute inset-0 pointer-events-none z-0 hidden md:block">
         <div className="absolute -top-1/3 -left-1/4 md:-top-1/2 md:-left-1/3 w-1/2 h-full border-2 border-dotted border-[#2b8ecc]/10 rounded-2xl" />
@@ -110,10 +110,10 @@ export default function QluelyLanding() {
           width={20}
           className={cn(
             "[mask-image:radial-gradient(300px_circle_at_center,white,transparent)]",
-            "absolute top-0 left-0 z-0"
+            "absolute top-0 left-0 z-0",
           )}
         />
-        <div className="flex flex-col gap-5 justify-center items-center z-1">
+        <div className="flex flex-col gap-5 justify-center items-center relative z-10">
           <span className="text-xl md:text-4xl text-amber-50">
             Interview smarter, not harder.
           </span>
