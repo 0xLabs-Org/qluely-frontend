@@ -13,6 +13,11 @@
 # testing
 /coverage
 
+
+
+# prisma
+lib/generated/
+
 # next.js
 /.next/
 /out/
