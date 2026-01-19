@@ -15,10 +15,14 @@ export default function Footer() {
           <div className="flex flex-col gap-2 ">
             <span className="text-sm text-black/40 font-medium">Social</span>
             <span className="text-black/60 hover:text-black/90 cursor-pointer">
-              Instagram
+              <a href="https://www.instagram.com/qluely.in" target="_blank">
+                Instagram
+              </a>
             </span>
             <span className="text-black/60 hover:text-black/90 cursor-pointer">
-              Twitter
+              <a href="https://x.com/qluely" target="_blank">
+                Twitter
+              </a>
             </span>
           </div>
         </div>
