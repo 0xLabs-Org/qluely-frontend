@@ -1,9 +1,9 @@
-import { loginSchema } from "@/lib/zod/schema";
-import { AccountType, STATUS } from "@/lib/types";
-import { prisma } from "@/lib/prisma";
-import { generateToken } from "@/helper/auth";
-import { AccountTypes } from "@/lib/generated/prisma/client";
-import bcrypt from "bcryptjs";
+import { loginSchema } from '@/lib/zod/schema';
+import { AccountType, STATUS } from '@/lib/types';
+import { prisma } from '@/lib/prisma';
+import { generateToken } from '@/helper/auth';
+import { AccountTypes } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 export async function POST(req: Request) {
   try {
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
 
     if (!parsed.success) {
       return Response.json(
-        { success: false, error: true, message: "Invalid input format" },
+        { success: false, error: true, message: 'Invalid input format' },
         { status: STATUS.BAD_REQUEST },
       );
     }
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
 
     if (!user) {
       return Response.json(
-        { success: false, error: true, message: "Invalid credentials" },
+        { success: false, error: true, message: 'Invalid credentials' },
         { status: STATUS.UNAUTHORIZED },
       );
     }
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
 
     if (!isValidPassword) {
       return Response.json(
-        { success: false, error: true, message: "Invalid credentials" },
+        { success: false, error: true, message: 'Invalid credentials' },
         { status: STATUS.UNAUTHORIZED },
       );
     }
@@ -50,15 +50,15 @@ export async function POST(req: Request) {
       {
         success: true,
         error: false,
-        message: "Login successful",
+        message: 'Login successful',
         data: { token, user: { id: user.id, email: user.email } },
       },
       { status: STATUS.OK },
     );
   } catch (error) {
-    console.error("Login error:", error);
+    console.error('Login error:', error);
     return Response.json(
-      { success: false, error: true, message: "Internal server error" },
+      { success: false, error: true, message: 'Internal server error' },
       { status: STATUS.INTERNAL_SERVER_ERROR },
     );
   }
