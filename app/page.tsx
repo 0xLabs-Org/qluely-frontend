@@ -14,12 +14,9 @@ import { FAQ } from "@/components/FAQ";
 import Footer from "@/components/Footer";
 
 export const ApplicationURL: Record<"macOS" | "Linux" | "Windows", string> = {
-  macOS:
-    "https://github.com/0xLabs-Org/Qluely/releases/download/v1.0.0/Qluely.1.0.2.exe",
-  Linux:
-    "https://github.com/0xLabs-Org/Qluely/releases/download/v1.0.0/Qluely.1.0.2.exe",
-  Windows:
-    "https://github.com/0xLabs-Org/Qluely/releases/download/v1.0.0/Qluely.1.0.2.exe",
+  macOS: "https://github.com/0xLabs-Org/Qluely/releases/download/v1.0.0/Qluely.1.0.2.exe",
+  Linux: "https://github.com/0xLabs-Org/Qluely/releases/download/v1.0.0/Qluely.1.0.2.exe",
+  Windows: "https://github.com/0xLabs-Org/Qluely/releases/download/v1.0.0/Qluely.1.0.2.exe",
 };
 
 export default function QluelyLanding() {
@@ -114,12 +111,8 @@ export default function QluelyLanding() {
           )}
         />
         <div className="flex flex-col gap-5 justify-center items-center relative z-10">
-          <span className="text-xl md:text-4xl text-amber-50">
-            Interview smarter, not harder.
-          </span>
-          <span className="text-xl md:text-4xl text-amber-50">
-            Get hired faster.
-          </span>
+          <span className="text-xl md:text-4xl text-amber-50">Interview smarter, not harder.</span>
+          <span className="text-xl md:text-4xl text-amber-50">Get hired faster.</span>
         </div>
         <div className="absolute -bottom-5 right-0 hidden md:block">
           <Image src="/model.png" alt="model" width={450} height={300} />

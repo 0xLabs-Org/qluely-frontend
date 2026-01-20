@@ -4,8 +4,7 @@ import { ShimmerButton } from "./ui/shimmer-button";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 
-interface AnimatedButtonProps
-  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "type"> {
+interface AnimatedButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "type"> {
   variant: "ripple" | "shimmer";
   type?: "button" | "submit" | "reset";
 }

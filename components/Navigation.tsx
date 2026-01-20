@@ -7,9 +7,7 @@ import { Menu, X, User, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 
-type NavigationProps = {
-  className?: string;
-};
+type NavigationProps = { className?: string };
 
 export default function Navigation({ className }: NavigationProps) {
   const [open, setOpen] = useState(false);
@@ -49,7 +47,7 @@ export default function Navigation({ className }: NavigationProps) {
       <nav
         className={cn(
           "mx-auto flex items-center justify-between shadow-sm border-b border-black/10 bg-bg-light backdrop-blur-sm px-4 py-3",
-          className
+          className,
         )}
       >
         <div className="cursor-pointer">
@@ -135,18 +133,12 @@ export default function Navigation({ className }: NavigationProps) {
           ) : (
             <>
               <Link href="/login">
-                <AnimatedButton
-                  className="rounded-full py-1 bg-accent"
-                  variant="ripple"
-                >
+                <AnimatedButton className="rounded-full py-1 bg-accent" variant="ripple">
                   Login
                 </AnimatedButton>
               </Link>
               <Link href="/register">
-                <AnimatedButton
-                  className="shadow-2xl py-1 rounded-sm"
-                  variant="shimmer"
-                >
+                <AnimatedButton className="shadow-2xl py-1 rounded-sm" variant="shimmer">
                   Register
                 </AnimatedButton>
               </Link>
@@ -164,16 +156,11 @@ export default function Navigation({ className }: NavigationProps) {
         </button>
       </nav>
 
-      <div
-        className={cn(
-          "fixed inset-0 z-50 transition",
-          open ? "visible" : "invisible"
-        )}
-      >
+      <div className={cn("fixed inset-0 z-50 transition", open ? "visible" : "invisible")}>
         <div
           className={cn(
             "absolute inset-0 bg-black/40 transition-opacity",
-            open ? "opacity-100" : "opacity-0"
+            open ? "opacity-100" : "opacity-0",
           )}
           onClick={() => setOpen(false)}
         />
@@ -181,7 +168,7 @@ export default function Navigation({ className }: NavigationProps) {
         <aside
           className={cn(
             "absolute top-0 right-0 h-full w-72 bg-white shadow-xl p-6 transition-transform",
-            open ? "translate-x-0" : "translate-x-full"
+            open ? "translate-x-0" : "translate-x-full",
           )}
         >
           <div className="flex items-center justify-between mb-6">
@@ -279,10 +266,7 @@ export default function Navigation({ className }: NavigationProps) {
               </>
             ) : (
               <>
-                <AnimatedButton
-                  className="rounded-full py-2 bg-accent"
-                  variant="ripple"
-                >
+                <AnimatedButton className="rounded-full py-2 bg-accent" variant="ripple">
                   <Link href="/login">Login</Link>
                 </AnimatedButton>
                 <AnimatedButton className="py-2 rounded-sm" variant="shimmer">

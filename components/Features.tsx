@@ -4,8 +4,7 @@ import { MessageSquare, Eye, Mail, Zap } from "lucide-react";
 const features = [
   {
     title: "Instant Answers",
-    description:
-      "Ask anything, get context-aware responses without switching tabs.",
+    description: "Ask anything, get context-aware responses without switching tabs.",
     icon: MessageSquare,
     color: "#F59E0B", // Amber
     gradient: "from-amber-400 to-amber-600",
@@ -25,9 +24,7 @@ const features = [
     gradient: "from-pink-400 to-pink-600",
   },
 ];
-type FeatureProps = {
-  id?: string;
-};
+type FeatureProps = { id?: string };
 const FeatureSection = ({ id }: FeatureProps) => {
   return (
     <section className="py-20 px-4 sm:px-6 bg-bg-light overflow-hidden" id={id}>
@@ -126,12 +123,8 @@ const FeatureSection = ({ id }: FeatureProps) => {
 
                 {/* Bottom Half: Text Content */}
                 <div className="p-6 pt-8 text-center grow flex flex-col">
-                  <h3 className="text-[#1A1F36] font-bold text-xl mb-3">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-500 text-sm leading-relaxed">
-                    {feature.description}
-                  </p>
+                  <h3 className="text-[#1A1F36] font-bold text-xl mb-3">{feature.title}</h3>
+                  <p className="text-gray-500 text-sm leading-relaxed">{feature.description}</p>
                 </div>
               </motion.div>
             );

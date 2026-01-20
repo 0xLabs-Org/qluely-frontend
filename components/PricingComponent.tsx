@@ -75,14 +75,10 @@ const plans = [
 const calculateDiscount = (original: number, discounted: number) =>
   Math.round(((original - discounted) / original) * 100);
 
-type PricingProps = {
-  id?: string;
-};
+type PricingProps = { id?: string };
 
 const PricingComponent = ({ id }: PricingProps) => {
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
-    "monthly",
-  );
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
 
   return (
     <section
@@ -137,14 +133,9 @@ const PricingComponent = ({ id }: PricingProps) => {
             const isStarter = plan.name === "Starter";
 
             const monthlyEquivalent =
-              billingCycle === "yearly"
-                ? Math.ceil(plan.yearlyPrice / 12)
-                : plan.monthlyPrice;
+              billingCycle === "yearly" ? Math.ceil(plan.yearlyPrice / 12) : plan.monthlyPrice;
 
-            const yearlyDiscount = calculateDiscount(
-              plan.monthlyPrice * 12,
-              plan.yearlyPrice,
-            );
+            const yearlyDiscount = calculateDiscount(plan.monthlyPrice * 12, plan.yearlyPrice);
 
             return (
               <motion.div
@@ -172,9 +163,7 @@ const PricingComponent = ({ id }: PricingProps) => {
                 </div>
 
                 <h3 className="text-xl font-bold mb-1">{plan.name}</h3>
-                <p className="text-slate-500 text-sm mb-6">
-                  {plan.description}
-                </p>
+                <p className="text-slate-500 text-sm mb-6">{plan.description}</p>
 
                 {/* Pricing */}
                 {billingCycle === "monthly" && isStarter && (
@@ -185,15 +174,12 @@ const PricingComponent = ({ id }: PricingProps) => {
                       </span>
                       <span className="text-5xl font-semibold text-slate-900">
                         <NumberTicker value={plan.onboardingPrice!} />{" "}
-                        <span className="text-2xl font-semibold text-slate-900">
-                          $
-                        </span>
+                        <span className="text-2xl font-semibold text-slate-900">$</span>
                       </span>
                       <span className="text-slate-400">/ month</span>
                     </div>
                     <p className="text-xs text-slate-500 mb-6">
-                      Intro price for first month only, then $
-                      {plan.monthlyPrice}
+                      Intro price for first month only, then ${plan.monthlyPrice}
                       /month
                     </p>
                   </>
@@ -203,9 +189,7 @@ const PricingComponent = ({ id }: PricingProps) => {
                   <div className="flex items-baseline gap-2 mb-8">
                     <span className="text-5xl font-semibold">
                       <NumberTicker value={plan.monthlyPrice} />{" "}
-                      <span className="text-2xl font-semibold text-slate-900">
-                        $
-                      </span>
+                      <span className="text-2xl font-semibold text-slate-900">$</span>
                     </span>
                     <span className="text-slate-400">/ month</span>
                   </div>
@@ -216,9 +200,7 @@ const PricingComponent = ({ id }: PricingProps) => {
                     <div className="flex items-end gap-2 mb-1">
                       <span className="text-5xl font-semibold">
                         <NumberTicker value={plan.yearlyPrice} />{" "}
-                        <span className="text-2xl font-semibold text-slate-900">
-                          $
-                        </span>
+                        <span className="text-2xl font-semibold text-slate-900">$</span>
                       </span>
                       <span className="text-slate-400">/ year</span>
                     </div>
@@ -235,9 +217,7 @@ const PricingComponent = ({ id }: PricingProps) => {
                 <button
                   className={clsx(
                     "w-full py-3.5 rounded-xl font-medium mb-8",
-                    plan.ctaStyle === "solid"
-                      ? "bg-slate-900 text-white"
-                      : "bg-white border",
+                    plan.ctaStyle === "solid" ? "bg-slate-900 text-white" : "bg-white border",
                   )}
                 >
                   {plan.cta}

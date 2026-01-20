@@ -17,30 +17,19 @@ export async function POST(req: Request) {
           message: "Invalid input format",
           details: parsed.error.issues,
         },
-        { status: STATUS.BAD_REQUEST }
+        { status: STATUS.BAD_REQUEST },
       );
     }
 
     const { email, password, coupon } = parsed.data;
 
     // Check if user already exists
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        email,
-      },
-      select: {
-        email: true,
-      },
-    });
+    const existingUser = await prisma.user.findFirst({ where: { email }, select: { email: true } });
 
     if (existingUser) {
       return Response.json(
-        {
-          success: false,
-          error: true,
-          message: "Email already taken",
-        },
-        { status: STATUS.CONFLICT }
+        { success: false, error: true, message: "Email already taken" },
+        { status: STATUS.CONFLICT },
       );
     }
 
@@ -51,34 +40,14 @@ export async function POST(req: Request) {
 
     // Create user with account
     const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        account: {
-          create: {
-            type: "FREE",
-          },
-        },
-      },
-      select: {
-        id: true,
-        email: true,
-        account: {
-          select: {
-            type: true,
-          },
-        },
-      },
+      data: { email, password: hashedPassword, account: { create: { type: "FREE" } } },
+      select: { id: true, email: true, account: { select: { type: true } } },
     });
 
     if (!user) {
       return Response.json(
-        {
-          success: false,
-          error: true,
-          message: "Failed to create user",
-        },
-        { status: STATUS.INTERNAL_SERVER_ERROR }
+        { success: false, error: true, message: "Failed to create user" },
+        { status: STATUS.INTERNAL_SERVER_ERROR },
       );
     }
 
@@ -102,17 +71,13 @@ export async function POST(req: Request) {
           },
         },
       },
-      { status: STATUS.CREATED }
+      { status: STATUS.CREATED },
     );
   } catch (error) {
     console.error("Registration error:", error);
     return Response.json(
-      {
-        success: false,
-        error: true,
-        message: "Internal server error",
-      },
-      { status: STATUS.INTERNAL_SERVER_ERROR }
+      { success: false, error: true, message: "Internal server error" },
+      { status: STATUS.INTERNAL_SERVER_ERROR },
     );
   }
 }

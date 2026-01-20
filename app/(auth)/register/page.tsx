@@ -10,11 +10,7 @@ import { Card } from "@/components/ui/card";
 export default function RegisterPage() {
   const router = useRouter();
   const { login } = useAuth();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    coupon: "",
-  });
+  const [formData, setFormData] = useState({ email: "", password: "", coupon: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -33,9 +29,7 @@ export default function RegisterPage() {
 
       const response = await fetch("/api/v1/auth/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(submitData),
       });
 
@@ -67,10 +61,7 @@ export default function RegisterPage() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   return (
@@ -78,9 +69,7 @@ export default function RegisterPage() {
       <Card className="w-full max-w-md p-6">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Create Account</h1>
-          <p className="text-gray-600 mt-2">
-            Join us today! Please fill in the details below.
-          </p>
+          <p className="text-gray-600 mt-2">Join us today! Please fill in the details below.</p>
         </div>
 
         {error && (
@@ -91,10 +80,7 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               Email
             </label>
             <input
@@ -110,10 +96,7 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
               Password
             </label>
             <input
@@ -129,10 +112,7 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label
-              htmlFor="coupon"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="coupon" className="block text-sm font-medium text-gray-700 mb-1">
               Coupon Code (Optional)
             </label>
             <input
@@ -154,10 +134,7 @@ export default function RegisterPage() {
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
             Already have an account?{" "}
-            <Link
-              href="/login"
-              className="text-blue-600 hover:text-blue-500 font-medium"
-            >
+            <Link href="/login" className="text-blue-600 hover:text-blue-500 font-medium">
               Sign in
             </Link>
           </p>

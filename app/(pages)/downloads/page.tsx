@@ -45,20 +45,8 @@ const categories: DownloadCategory = {
       storeIconType: "microsoft",
       href: "#",
     },
-    {
-      id: "mac",
-      name: "MacOS",
-      storeName: "Mac App Store",
-      storeIconType: "apple",
-      href: "#",
-    },
-    {
-      id: "linux",
-      name: "Linux",
-      storeName: "Snap Store",
-      storeIconType: "snap",
-      href: "#",
-    },
+    { id: "mac", name: "MacOS", storeName: "Mac App Store", storeIconType: "apple", href: "#" },
+    { id: "linux", name: "Linux", storeName: "Snap Store", storeIconType: "snap", href: "#" },
   ],
 };
 export const DownloadSection = () => {
@@ -72,9 +60,7 @@ export const DownloadSection = () => {
           <p className="text-slate-500 text-lg">
             Download Qluely and keep your private AI meeting assistant with you,
           </p>
-          <p className="text-slate-500 text-lg">
-            At your desk, in interviews, and on every call
-          </p>
+          <p className="text-slate-500 text-lg">At your desk, in interviews, and on every call</p>
         </div>
       </div>
 

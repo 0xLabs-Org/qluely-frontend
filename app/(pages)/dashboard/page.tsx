@@ -49,9 +49,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Account Info Card */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Account Information
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Information</h3>
               <div className="space-y-3">
                 <div>
                   <span className="text-sm text-gray-500">Email:</span>
@@ -59,9 +57,7 @@ export default function DashboardPage() {
                 </div>
                 <div>
                   <span className="text-sm text-gray-500">Account Type:</span>
-                  <p className="text-gray-900 capitalize">
-                    {user.accountType || "FREE"}
-                  </p>
+                  <p className="text-gray-900 capitalize">{user.accountType || "FREE"}</p>
                 </div>
                 <div>
                   <span className="text-sm text-gray-500">User ID:</span>
@@ -72,9 +68,7 @@ export default function DashboardPage() {
 
             {/* Quick Actions Card */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Quick Actions
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
               <div className="space-y-3">
                 <a
                   href="/downloads"
@@ -93,9 +87,7 @@ export default function DashboardPage() {
 
             {/* Status Card */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Status
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Status</h3>
               <div className="space-y-3">
                 <div className="flex items-center">
                   <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
@@ -107,9 +99,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex items-center">
                   <div className="w-3 h-3 bg-yellow-500 rounded-full mr-3"></div>
-                  <span className="text-sm text-gray-700">
-                    Updates Available
-                  </span>
+                  <span className="text-sm text-gray-700">Updates Available</span>
                 </div>
               </div>
             </div>

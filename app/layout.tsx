@@ -3,15 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthContext";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Qluely | Undetectable AI Assistant for Meetings & Workflows",
@@ -50,18 +44,12 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Qluely — Undetectable AI Assistant",
-    description:
-      "Real-time AI help that stays invisible on screen recordings and screenshots.",
+    description: "Real-time AI help that stays invisible on screen recordings and screenshots.",
     images: ["https://qluely.in/logo.png"],
   },
-  robots: {
-    index: true,
-    follow: true,
-  },
+  robots: { index: true, follow: true },
 
-  alternates: {
-    canonical: "https://qluely.in",
-  },
+  alternates: { canonical: "https://qluely.in" },
 
   icons: {
     icon: [
@@ -75,16 +63,10 @@ export const metadata: Metadata = {
   manifest: "/icons/site.webmanifest",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-x-hidden`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-x-hidden`}>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
