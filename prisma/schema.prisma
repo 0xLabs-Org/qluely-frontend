@@ -7,14 +7,21 @@ datasource db {
 }
 
 model Account {
-  id               String       @id @default(uuid())
-  userId           String       @unique
-  type             AccountTypes @default(FREE)
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
-  creditsRemaining Int          @default(15)
-  creditsUsed      Int          @default(0)
-  User             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id               String        @id @default(uuid())
+  userId           String        @unique
+  plan             AccountTypes  @default(FREE)
+  period           BillingCycle?
+  planStartedAt    DateTime?
+  planExpiresAt    DateTime?
+  creditsRemaining Int           @default(15)
+  creditsUsed      Int           @default(0)
+  imageCredits     Int           @default(5)
+  audioCredits     Int           @default(5)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  User             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([planExpiresAt])
 }
 
 model User {
@@ -23,10 +30,56 @@ model User {
   password  String
   createdAt DateTime @default(now())
   account   Account?
+  Order     Order[]
+}
+
+model Order {
+  id              String        @id
+  receipt         String
+  userId          String
+  amount          Int
+  currency        CurrencyTypes
+  status          PaymentStatus @default(CREATED)
+  plan            AccountTypes
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime
+  razorpayOrderId String
+  User            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Payment {
+  id                String   @id
+  razorpayOrderId   String   @unique
+  razorpayPaymentId String?
+  razorpaySignature String?
+  orderId           String
+  method            String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime
 }
 
 enum AccountTypes {
   FREE
-  PREMIUM
+  UNLIMITED
   PRO
+  BASIC
+}
+
+enum BillingCycle {
+  MONTH
+  YEAR
+}
+
+enum CurrencyTypes {
+  USD
+  INR
+}
+
+enum PaymentStatus {
+  CREATED
+  PAID
+  FAILED
+  REFUNDED
 }

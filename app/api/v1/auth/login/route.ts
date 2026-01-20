@@ -2,7 +2,6 @@ import { loginSchema } from '@/lib/zod/schema';
 import { AccountType, STATUS } from '@/lib/types';
 import { prisma } from '@/lib/prisma';
 import { generateToken } from '@/helper/auth';
-import { AccountTypes } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 export async function POST(req: Request) {
@@ -44,17 +43,26 @@ export async function POST(req: Request) {
 
     // Generate token
     const accountType = user.account?.type ? (user.account.type as AccountType) : AccountType.FREE;
-    const token = generateToken(user.id, accountType);
 
-    return Response.json(
-      {
-        success: true,
-        error: false,
-        message: 'Login successful',
-        data: { token, user: { id: user.id, email: user.email } },
-      },
-      { status: STATUS.OK },
-    );
+    try {
+      const token = generateToken(user.id, accountType);
+
+      return Response.json(
+        {
+          success: true,
+          error: false,
+          message: 'Login successful',
+          data: { token, user: { id: user.id, email: user.email } },
+        },
+        { status: STATUS.OK },
+      );
+    } catch (tokenError) {
+      console.error('Token generation error:', tokenError);
+      return Response.json(
+        { success: false, error: true, message: 'Authentication configuration error' },
+        { status: STATUS.INTERNAL_SERVER_ERROR },
+      );
+    }
   } catch (error) {
     console.error('Login error:', error);
     return Response.json(
