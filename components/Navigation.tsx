@@ -184,7 +184,7 @@ export default function Navigation({ className }: NavigationProps) {
 
           <div className="flex flex-col gap-5 text-sm">
             <a
-              href="#features"
+              href="/#features"
               className="hover:text-black/70 cursor-pointer"
               onClick={() => setOpen(false)}
             >
@@ -192,7 +192,7 @@ export default function Navigation({ className }: NavigationProps) {
             </a>
 
             <a
-              href="#pricing"
+              href="/#pricing"
               className="hover:text-black/70 cursor-pointer"
               onClick={() => setOpen(false)}
             >
@@ -216,7 +216,7 @@ export default function Navigation({ className }: NavigationProps) {
             </a>
 
             <a
-              href="#faq"
+              href="/#faq"
               className="hover:text-black/70 cursor-pointer"
               onClick={() => setOpen(false)}
             >

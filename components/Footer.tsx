@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from 'next/image';
 
 export default function Footer() {
   return (
@@ -12,7 +12,7 @@ export default function Footer() {
             <Image src="/logo.png" width={50} height={50} alt="logo" />
             <span className="text-black font-bold text-4xl">Qluely</span>
           </div>
-          <div className="flex flex-col gap-2 ">
+          <div className="flex flex-col gap-2 mt-10">
             <span className="text-sm text-black/40 font-medium">Social</span>
             <span className="text-black/60 hover:text-black/90 cursor-pointer">
               <a href="https://www.instagram.com/qluely.in" target="_blank">
