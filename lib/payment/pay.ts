@@ -137,7 +137,7 @@ export async function pay(
           throw new Error(verifyResponse.message || 'Payment verification failed');
         }
 
-        console.log('Payment verified successfully');
+        window.location.href = `/payment?verification=true`;
       },
       theme: { color: '#000000' },
     };
@@ -149,7 +149,6 @@ export async function pay(
     const rzp = new Razorpay(options);
     rzp.open();
   } catch (error) {
-    console.error('Payment error:', error);
-    throw error;
+    window.location.href = `/payment?verification=false`;
   }
 }
