@@ -3,10 +3,10 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle, XCircle, CreditCard, Smartphone, Coins } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
-export default function PaymentPage() {
+function PaymentPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { updateUser } = useAuth();
@@ -234,5 +234,21 @@ export default function PaymentPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function PaymentPageFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+  );
+}
+
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={<PaymentPageFallback />}>
+      <PaymentPageContent />
+    </Suspense>
   );
 }
