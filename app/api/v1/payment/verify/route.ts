@@ -19,18 +19,39 @@ export async function POST(request: NextRequest) {
 
     // Validate request body
     if (!body.razorpay_order_id || typeof body.razorpay_order_id !== 'string') {
-      return NextResponse.json({ error: 'Missing or invalid razorpay_order_id' }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: true,
+          message: 'Missing or invalid razorpay_order_id',
+          data: null,
+        },
+        { status: 400 },
+      );
     }
 
     if (!body.razorpay_payment_id || typeof body.razorpay_payment_id !== 'string') {
       return NextResponse.json(
-        { error: 'Missing or invalid razorpay_payment_id' },
+        {
+          success: false,
+          error: true,
+          message: 'Missing or invalid razorpay_payment_id',
+          data: null,
+        },
         { status: 400 },
       );
     }
 
     if (!body.razorpay_signature || typeof body.razorpay_signature !== 'string') {
-      return NextResponse.json({ error: 'Missing or invalid razorpay_signature' }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: true,
+          message: 'Missing or invalid razorpay_signature',
+          data: null,
+        },
+        { status: 400 },
+      );
     }
 
     // Get headers from the original request
@@ -63,10 +84,38 @@ export async function POST(request: NextRequest) {
     // Get response data
     const responseData = await response.json();
 
-    // Return the backend response with the same status code
-    return NextResponse.json(responseData, { status: response.status });
+    // Return the backend response with consistent format
+    if (response.ok) {
+      return NextResponse.json(
+        {
+          success: true,
+          error: false,
+          message: responseData.message || 'Payment verified successfully',
+          data: responseData.data || responseData,
+        },
+        { status: response.status },
+      );
+    } else {
+      return NextResponse.json(
+        {
+          success: false,
+          error: true,
+          message: responseData.message || 'Payment verification failed',
+          data: responseData.data || null,
+        },
+        { status: response.status },
+      );
+    }
   } catch (error) {
     console.error('Proxy error:', error);
-    return NextResponse.json({ error: 'Failed to proxy request to backend' }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: true,
+        message: 'Failed to proxy request to backend',
+        data: null,
+      },
+      { status: 500 },
+    );
   }
 }

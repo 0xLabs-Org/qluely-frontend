@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface User {
   id: string;
@@ -30,18 +30,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const checkAuth = () => {
       try {
-        const token = localStorage.getItem("authToken");
-        const userData = localStorage.getItem("userData");
+        // Migration: check for old token key and move to new key
+        const oldToken = localStorage.getItem('token');
+        const currentToken = localStorage.getItem('authToken');
+
+        if (oldToken && !currentToken) {
+          console.log('Migrating old token to new storage key');
+          localStorage.setItem('authToken', oldToken);
+          localStorage.removeItem('token');
+        }
+
+        const token = localStorage.getItem('authToken');
+        const userData = localStorage.getItem('userData');
 
         if (token && userData) {
           const parsedUser = JSON.parse(userData);
           setUser(parsedUser);
+          console.log('User authenticated from localStorage:', parsedUser);
+        } else if (token) {
+          // If we have a token but no userData, clear the token
+          console.log('Found token but no userData, clearing token');
+          localStorage.removeItem('authToken');
         }
       } catch (error) {
-        console.error("Error checking auth:", error);
+        console.error('Error checking auth:', error);
         // Clear invalid data
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("userData");
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
+        localStorage.removeItem('token'); // Clear old key too
       } finally {
         setIsLoading(false);
       }
@@ -51,19 +67,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const login = (token: string, userData: User) => {
-    localStorage.setItem("authToken", token);
-    localStorage.setItem("userData", JSON.stringify(userData));
+    console.log('AuthContext login called with:', {
+      token: token.substring(0, 20) + '...',
+      userData,
+    });
+    localStorage.setItem('authToken', token);
+    localStorage.setItem('userData', JSON.stringify(userData));
     setUser(userData);
+    console.log('AuthContext login completed, user state updated');
   };
 
   const logout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("userData");
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    localStorage.removeItem('token'); // Clean up old key too
     setUser(null);
   };
 
   const updateUser = (userData: User) => {
-    localStorage.setItem("userData", JSON.stringify(userData));
+    localStorage.setItem('userData', JSON.stringify(userData));
     setUser(userData);
   };
 
@@ -75,7 +97,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 }

@@ -1,83 +1,167 @@
-import { registerSchema } from "@/lib/zod/schema";
-import { AccountType, STATUS } from "@/lib/types";
-import { prisma } from "@/lib/prisma";
-import { generateToken } from "@/helper/auth";
-import bcrypt from "bcryptjs";
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(req: Request) {
+type RegisterRequest = {
+  email: string;
+  password: string;
+  coupon?: string;
+};
+
+export async function POST(request: NextRequest) {
   try {
-    const body = await req.json();
-    const parsed = registerSchema.safeParse(body);
+    console.log('Register proxy: Received request');
+    const backendUrl = process.env.BACKEND_API_URL;
 
-    if (!parsed.success) {
-      return Response.json(
+    if (!backendUrl) {
+      console.error('Register proxy: BACKEND_API_URL not configured');
+      return NextResponse.json(
         {
           success: false,
           error: true,
-          message: "Invalid input format",
-          details: parsed.error.issues,
+          message: 'Backend API URL not configured',
+          data: null,
         },
-        { status: STATUS.BAD_REQUEST },
+        { status: 500 },
       );
     }
 
-    const { email, password, coupon } = parsed.data;
+    console.log('Register proxy: Backend URL:', backendUrl);
 
-    // Check if user already exists
-    const existingUser = await prisma.user.findFirst({ where: { email }, select: { email: true } });
-
-    if (existingUser) {
-      return Response.json(
-        { success: false, error: true, message: "Email already taken" },
-        { status: STATUS.CONFLICT },
-      );
-    }
-
-    // Validate coupon if provided
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    // Create user with account
-    const user = await prisma.user.create({
-      data: { email, password: hashedPassword, account: { create: { type: "FREE" } } },
-      select: { id: true, email: true, account: { select: { type: true } } },
+    // Get the request body
+    const body = await request.json();
+    console.log('Register proxy: Request body:', {
+      email: body.email,
+      password: '[REDACTED]',
+      coupon: body.coupon,
     });
 
-    if (!user) {
-      return Response.json(
-        { success: false, error: true, message: "Failed to create user" },
-        { status: STATUS.INTERNAL_SERVER_ERROR },
+    // Validate request body
+    if (!body.email || typeof body.email !== 'string') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: true,
+          message: 'Missing or invalid email',
+          data: null,
+        },
+        { status: 400 },
       );
     }
 
-    // Generate token
-    const userAccountType = user.account?.type
-      ? (user.account.type as AccountType)
-      : AccountType.FREE;
-    const token = generateToken(user.id, userAccountType);
+    if (!body.password || typeof body.password !== 'string') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: true,
+          message: 'Missing or invalid password',
+          data: null,
+        },
+        { status: 400 },
+      );
+    }
 
-    return Response.json(
-      {
-        success: true,
-        error: false,
-        message: "User created successfully",
-        data: {
-          token,
-          user: {
-            id: user.id,
-            email: user.email,
-            accountType: user.account?.type || AccountType.FREE,
+    // Get headers from the original request
+    const headers: Record<string, string> = {};
+    request.headers.forEach((value, key) => {
+      // Forward relevant headers, skip host and other problematic headers
+      if (key.toLowerCase() !== 'host' && key.toLowerCase() !== 'content-length') {
+        headers[key] = value;
+      }
+    });
+
+    // Set content-type if not present
+    if (!headers['content-type']) {
+      headers['content-type'] = 'application/json';
+    }
+
+    console.log('Register proxy: Making request to backend:', `${backendUrl}/api/v1/register`);
+
+    // Make the proxy request to the backend
+    const response = await fetch(`${backendUrl}/api/v1/register`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    });
+
+    console.log('Register proxy: Backend response status:', response.status);
+    console.log('Register proxy: Response content-type:', response.headers.get('content-type'));
+
+    // Check if response is JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const textResponse = await response.text();
+      console.log('Register proxy: Non-JSON response:', textResponse.substring(0, 200));
+      return NextResponse.json(
+        {
+          success: false,
+          error: true,
+          message: 'Backend returned non-JSON response',
+          data: {
+            details: `Status: ${response.status}, Content-Type: ${contentType}`,
+            preview: textResponse.substring(0, 100) + '...',
           },
         },
-      },
-      { status: STATUS.CREATED },
-    );
+        { status: 502 },
+      );
+    }
+
+    // Get response data
+    let responseData;
+    try {
+      responseData = await response.json();
+    } catch (parseError) {
+      const textResponse = await response.text();
+      console.error('Register proxy: JSON parse error:', parseError);
+      console.log('Register proxy: Raw response:', textResponse.substring(0, 200));
+      return NextResponse.json(
+        {
+          success: false,
+          error: true,
+          message: 'Failed to parse backend response',
+          data: {
+            details: textResponse.substring(0, 100) + '...',
+          },
+        },
+        { status: 502 },
+      );
+    }
+
+    console.log('Register proxy: Backend response data:', {
+      success: responseData.success,
+      hasToken: !!responseData.data?.token,
+    });
+
+    // Return the backend response with consistent format
+    if (response.ok && responseData.success) {
+      return NextResponse.json(
+        {
+          success: true,
+          error: false,
+          message: responseData.message || 'Registration successful',
+          data: responseData.data,
+        },
+        { status: response.status },
+      );
+    } else {
+      return NextResponse.json(
+        {
+          success: false,
+          error: true,
+          message: responseData.message || 'Registration failed',
+          data: responseData.data || null,
+        },
+        { status: response.status },
+      );
+    }
   } catch (error) {
-    console.error("Registration error:", error);
-    return Response.json(
-      { success: false, error: true, message: "Internal server error" },
-      { status: STATUS.INTERNAL_SERVER_ERROR },
+    console.error('Register proxy error:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: true,
+        message: 'Failed to proxy request to backend',
+        data: null,
+      },
+      { status: 500 },
     );
   }
 }

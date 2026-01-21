@@ -1,23 +1,23 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 export default function RegisterPage() {
   const router = useRouter();
   const { login } = useAuth();
-  const [formData, setFormData] = useState({ email: "", password: "", coupon: "" });
+  const [formData, setFormData] = useState({ email: '', password: '', coupon: '' });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError("");
+    setError('');
 
     try {
       // Prepare data, excluding empty coupon
@@ -27,34 +27,62 @@ export default function RegisterPage() {
         ...(formData.coupon.trim() && { coupon: formData.coupon.trim() }),
       };
 
-      const response = await fetch("/api/v1/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      localStorage.removeItem('token');
+
+      const response = await fetch('/api/v1/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(submitData),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Registration failed");
+        throw new Error(data.message || 'Registration failed');
       }
 
-      if (data.success && data.data?.token) {
-        // Use global auth context to store user data
-        const userData = {
-          id: data.data.user.id,
-          email: data.data.user.email,
-          accountType: data.data.user.accountType,
-        };
-        login(data.data.token, userData);
+      console.log('Register response data:', data);
 
-        // Redirect to dashboard
-        router.push("/dashboard");
+      if (data.success) {
+        // Check if token exists
+        const token = data.data?.token || data.token;
+        if (!token) {
+          throw new Error('No token received from server');
+        }
+
+        console.log('Received token:', token.substring(0, 30) + '...');
+
+        // Decode JWT token to extract user information
+        try {
+          const tokenParts = token.split('.');
+          if (tokenParts.length !== 3) {
+            throw new Error('Invalid token format');
+          }
+
+          const payload = JSON.parse(atob(tokenParts[1]));
+          console.log('JWT payload:', payload);
+
+          // Extract user data from token
+          const userData = {
+            id: payload.userId || payload.id || 'unknown',
+            email: formData.email, // Use the email from the registration form since it's not in token
+            accountType: payload.plan || payload.accountType || 'FREE',
+          };
+
+          console.log('Extracted user data:', userData);
+          login(token, userData);
+
+          // Redirect to dashboard
+          router.push('/dashboard');
+        } catch (decodeError) {
+          console.error('Failed to decode token:', decodeError);
+          throw new Error('Invalid token received from server');
+        }
       } else {
-        throw new Error("Registration failed");
+        throw new Error(data.message || 'Registration failed');
       }
     } catch (err: any) {
-      setError(err.message || "An error occurred during registration");
+      setError(err.message || 'An error occurred during registration');
     } finally {
       setIsLoading(false);
     }
@@ -127,13 +155,13 @@ export default function RegisterPage() {
           </div>
 
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Creating Account..." : "Create Account"}
+            {isLoading ? 'Creating Account...' : 'Create Account'}
           </Button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Already have an account?{" "}
+            Already have an account?{' '}
             <Link href="/login" className="text-blue-600 hover:text-blue-500 font-medium">
               Sign in
             </Link>
