@@ -9,13 +9,13 @@ export async function pay(
     // Debug localStorage contents
     console.log('=== Payment Debug Info ===');
     console.log('All localStorage keys:', Object.keys(localStorage));
-    console.log('authToken value:', localStorage.getItem('authToken'));
+    console.log('token value:', localStorage.getItem('token'));
     console.log('userData value:', localStorage.getItem('userData'));
-    console.log('old token value:', localStorage.getItem('token'));
+    console.log('old authToken value:', localStorage.getItem('authToken'));
     console.log('========================');
 
     // Check if user is authenticated
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('token');
     const userData = localStorage.getItem('userData');
 
     if (!token || !userData) {
@@ -27,7 +27,7 @@ export async function pay(
     if (!token.startsWith('eyJ')) {
       // JWT tokens start with eyJ
       console.warn('Token format appears invalid');
-      localStorage.removeItem('authToken');
+      localStorage.removeItem('token');
       localStorage.removeItem('userData');
       throw new Error('Invalid authentication token. Please login again.');
     }
@@ -48,7 +48,7 @@ export async function pay(
       }
     } catch (tokenError) {
       console.error('Token validation error:', tokenError);
-      localStorage.removeItem('authToken');
+      localStorage.removeItem('token');
       localStorage.removeItem('userData');
       throw new Error('Invalid or expired authentication token. Please login again.');
     }
@@ -76,7 +76,7 @@ export async function pay(
       // Handle token expiration/invalid token
       if (res.status === 401) {
         console.log('Token expired or invalid, clearing localStorage');
-        localStorage.removeItem('authToken');
+        localStorage.removeItem('token');
         localStorage.removeItem('userData');
 
         const message = errorResponse.message || 'Authentication failed';
@@ -108,7 +108,7 @@ export async function pay(
       name: 'Qluely',
       description: `${plan}`,
       handler: async (response: any) => {
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('token');
         const headers: Record<string, string> = {
           'Content-Type': 'application/json',
         };
@@ -137,7 +137,72 @@ export async function pay(
           throw new Error(verifyResponse.message || 'Payment verification failed');
         }
 
+        console.log('Payment verified successfully');
+
+        // Call refresh route to get updated token
+        try {
+          console.log('Calling refresh route...');
+          const refreshRes = await fetch('/api/v1/refresh', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          const refreshResponse = await refreshRes.json();
+          console.log('Refresh response:', refreshResponse);
+
+          if (refreshRes.ok && refreshResponse.success && refreshResponse.data?.refreshToken) {
+            console.log('Updating token with refreshToken');
+
+            // Update localStorage with new token
+            localStorage.setItem('token', refreshResponse.data.refreshToken);
+
+            // Update userData if provided
+            if (refreshResponse.data.user) {
+              localStorage.setItem('userData', JSON.stringify(refreshResponse.data.user));
+            }
+
+            // Fetch fresh user profile data after payment
+            try {
+              console.log('Fetching fresh user profile data...');
+              const profileRes = await fetch('/api/v1/user/profile', {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${refreshResponse.data.refreshToken}`,
+                },
+              });
+
+              const profileResponse = await profileRes.json();
+              console.log('Profile response:', profileResponse);
+
+              if (profileRes.ok && profileResponse.success && profileResponse.data) {
+                console.log('Updating user data with fresh profile data');
+                localStorage.setItem('userData', JSON.stringify(profileResponse.data));
+              }
+            } catch (profileError) {
+              console.error('Failed to fetch fresh profile data:', profileError);
+              // Don't throw error here, payment was successful
+            }
+
+            console.log('Token and user data updated successfully');
+          } else {
+            console.log('No refresh token received or refresh failed:', refreshResponse.message);
+          }
+        } catch (refreshError) {
+          console.error('Token refresh failed:', refreshError);
+          // Don't throw error here, payment was successful
+        }
+
         window.location.href = `/payment?verification=true`;
+      },
+      modal: {
+        ondismiss: function () {
+          console.log('Payment modal was closed by user');
+          window.location.href = `/payment?verification=false`;
+        },
       },
       theme: { color: '#000000' },
     };

@@ -4,16 +4,79 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle, XCircle, CreditCard, Smartphone, Coins } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function PaymentPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { updateUser } = useAuth();
   const [isSuccess, setIsSuccess] = useState<boolean | null>(null);
 
   useEffect(() => {
     const verification = searchParams.get('verification');
-    setIsSuccess(verification === 'true');
+    const isVerificationSuccess = verification === 'true';
+    setIsSuccess(isVerificationSuccess);
+
+    // Refresh user profile data after successful payment
+    if (isVerificationSuccess) {
+      refreshUserProfile();
+    }
   }, [searchParams]);
+
+  const refreshUserProfile = async () => {
+    try {
+      console.log('Refreshing user profile after payment...');
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        console.log('No token found, skipping profile refresh');
+        return;
+      }
+
+      const response = await fetch('/api/v1/user/profile', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        console.log(`Profile refresh failed with status: ${response.status}`);
+        // Try to parse error response
+        try {
+          const errorResult = await response.json();
+          console.log('Profile refresh error details:', errorResult);
+
+          if (errorResult.message && errorResult.message.includes('endpoint not found')) {
+            console.log(
+              'Backend profile endpoint not implemented yet - this is expected during development',
+            );
+            return;
+          }
+        } catch {
+          // If we can't parse the error response, just log and continue
+          console.log('Could not parse error response');
+        }
+        return;
+      }
+
+      const result = await response.json();
+      console.log('Profile refresh response:', result);
+
+      if (result.success && result.data) {
+        console.log('Updating user data with fresh profile');
+        localStorage.setItem('userData', JSON.stringify(result.data));
+        updateUser(result.data);
+        console.log('User data updated successfully');
+      } else {
+        console.log('Profile refresh succeeded but no user data returned:', result.message);
+      }
+    } catch (error) {
+      console.error('Error refreshing user profile:', error);
+      console.log('Profile refresh failed, but payment was still successful - continuing...');
+    }
+  };
 
   if (isSuccess === null) {
     return (

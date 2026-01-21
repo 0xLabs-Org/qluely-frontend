@@ -31,16 +31,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const checkAuth = () => {
       try {
         // Migration: check for old token key and move to new key
-        const oldToken = localStorage.getItem('token');
-        const currentToken = localStorage.getItem('authToken');
+        const oldToken = localStorage.getItem('authToken');
+        const currentToken = localStorage.getItem('token');
 
         if (oldToken && !currentToken) {
-          console.log('Migrating old token to new storage key');
-          localStorage.setItem('authToken', oldToken);
-          localStorage.removeItem('token');
+          console.log('Migrating old authToken to new storage key');
+          localStorage.setItem('token', oldToken);
+          localStorage.removeItem('authToken');
         }
 
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('token');
         const userData = localStorage.getItem('userData');
 
         if (token && userData) {
@@ -50,14 +50,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         } else if (token) {
           // If we have a token but no userData, clear the token
           console.log('Found token but no userData, clearing token');
-          localStorage.removeItem('authToken');
+          localStorage.removeItem('token');
         }
       } catch (error) {
         console.error('Error checking auth:', error);
         // Clear invalid data
-        localStorage.removeItem('authToken');
+        localStorage.removeItem('token');
         localStorage.removeItem('userData');
-        localStorage.removeItem('token'); // Clear old key too
+        localStorage.removeItem('authToken'); // Clear old key too
       } finally {
         setIsLoading(false);
       }
@@ -71,16 +71,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
       token: token.substring(0, 20) + '...',
       userData,
     });
-    localStorage.setItem('authToken', token);
+    localStorage.setItem('token', token);
     localStorage.setItem('userData', JSON.stringify(userData));
     setUser(userData);
     console.log('AuthContext login completed, user state updated');
   };
 
   const logout = () => {
-    localStorage.removeItem('authToken');
+    localStorage.removeItem('token');
     localStorage.removeItem('userData');
-    localStorage.removeItem('token'); // Clean up old key too
+    localStorage.removeItem('authToken'); // Clean up old key too
     setUser(null);
   };
 

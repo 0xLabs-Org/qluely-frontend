@@ -1,11 +1,11 @@
-"use client";
-import Image from "next/image";
-import Link from "next/link";
-import AnimatedButton from "./AnimatedButton";
-import { useState, useEffect } from "react";
-import { Menu, X, User, LogOut } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/AuthContext";
+'use client';
+import Image from 'next/image';
+import Link from 'next/link';
+import AnimatedButton from './AnimatedButton';
+import { useState, useEffect } from 'react';
+import { Menu, X, User, LogOut } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 type NavigationProps = { className?: string };
 
@@ -17,7 +17,7 @@ export default function Navigation({ className }: NavigationProps) {
   // Close mobile menu on escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+      if (e.key === 'Escape') {
         setOpen(false);
         setDropdownOpen(false);
       }
@@ -25,19 +25,19 @@ export default function Navigation({ className }: NavigationProps) {
 
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Element;
-      if (!target.closest(".avatar-dropdown")) {
+      if (!target.closest('.avatar-dropdown')) {
         setDropdownOpen(false);
       }
     };
 
     if (open || dropdownOpen) {
-      document.addEventListener("keydown", handleEscape);
-      document.addEventListener("click", handleClickOutside);
+      document.addEventListener('keydown', handleEscape);
+      document.addEventListener('click', handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener("keydown", handleEscape);
-      document.removeEventListener("click", handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('click', handleClickOutside);
     };
   }, [open, dropdownOpen]);
 
@@ -46,7 +46,7 @@ export default function Navigation({ className }: NavigationProps) {
       {/* Navbar */}
       <nav
         className={cn(
-          "mx-auto flex items-center justify-between shadow-sm border-b border-black/10 bg-bg-light backdrop-blur-sm px-4 py-3",
+          'mx-auto flex items-center justify-between shadow-sm border-b border-black/10 bg-bg-light backdrop-blur-sm px-4 py-3',
           className,
         )}
       >
@@ -91,16 +91,16 @@ export default function Navigation({ className }: NavigationProps) {
                 className="flex items-center gap-2 p-2 rounded-full hover:bg-gray-100 transition-colors"
               >
                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
-                  {user.email.charAt(0).toUpperCase()}
+                  {user?.email?.charAt(0)?.toUpperCase() || 'U'}
                 </div>
               </button>
 
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
                   <div className="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
-                    <p className="font-medium">{user.email.split("@")[0]}</p>
+                    <p className="font-medium">{user?.email?.split('@')[0] || 'User'}</p>
                     <p className="text-xs text-gray-500 capitalize">
-                      {user.accountType || "FREE"} Account
+                      {user?.accountType || 'FREE'} Account
                     </p>
                   </div>
                   <Link
@@ -156,19 +156,19 @@ export default function Navigation({ className }: NavigationProps) {
         </button>
       </nav>
 
-      <div className={cn("fixed inset-0 z-50 transition", open ? "visible" : "invisible")}>
+      <div className={cn('fixed inset-0 z-50 transition', open ? 'visible' : 'invisible')}>
         <div
           className={cn(
-            "absolute inset-0 bg-black/40 transition-opacity",
-            open ? "opacity-100" : "opacity-0",
+            'absolute inset-0 bg-black/40 transition-opacity',
+            open ? 'opacity-100' : 'opacity-0',
           )}
           onClick={() => setOpen(false)}
         />
 
         <aside
           className={cn(
-            "absolute top-0 right-0 h-full w-72 bg-white shadow-xl p-6 transition-transform",
-            open ? "translate-x-0" : "translate-x-full",
+            'absolute top-0 right-0 h-full w-72 bg-white shadow-xl p-6 transition-transform',
+            open ? 'translate-x-0' : 'translate-x-full',
           )}
         >
           <div className="flex items-center justify-between mb-6">
@@ -241,12 +241,12 @@ export default function Navigation({ className }: NavigationProps) {
               <>
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-4">
                   <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium">
-                    {user.email.charAt(0).toUpperCase()}
+                    {user?.email?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
                   <div>
-                    <p className="font-medium text-sm">{user.email}</p>
+                    <p className="font-medium text-sm">{user?.email || 'Loading...'}</p>
                     <p className="text-xs text-gray-500 capitalize">
-                      {user.accountType || "FREE"} Account
+                      {user.accountType || 'FREE'} Account
                     </p>
                   </div>
                 </div>

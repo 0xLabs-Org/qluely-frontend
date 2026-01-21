@@ -1,7 +1,8 @@
 export enum AccountType {
-  FREE = "FREE",
-  PRO = "PRO",
-  PREMIUM = "PREMIUM",
+  FREE = 'FREE',
+  BASIC = 'BASIC',
+  PRO = 'PRO',
+  PREMIUM = 'PREMIUM',
 }
 export const STATUS = {
   OK: 200,

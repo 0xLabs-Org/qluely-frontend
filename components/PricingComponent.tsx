@@ -9,6 +9,17 @@ import { NumberTicker } from './ui/number-ticker';
 import { pay } from '@/lib/payment/pay';
 import { useAuth } from '@/contexts/AuthContext';
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 const plans = [
   {
     name: 'Starter',
@@ -238,47 +249,67 @@ const PricingComponent = ({ id }: PricingProps) => {
                 )}
 
                 {/* CTA */}
-                <button
-                  className={clsx(
-                    'w-full py-3.5 rounded-xl font-medium mb-8',
-                    plan.ctaStyle === 'solid' ? 'bg-slate-900 text-white' : 'bg-white border',
-                  )}
-                  onClick={async () => {
-                    // Check authentication state first
-                    if (!user) {
-                      console.log('User not authenticated, redirecting to login');
-                      alert('Please login to your account first to make a purchase.');
-                      window.location.href = '/login';
-                      return;
-                    }
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button
+                      className={clsx(
+                        'w-full py-3.5 rounded-xl font-medium mb-8',
+                        plan.ctaStyle === 'solid' ? 'bg-slate-900 text-white' : 'bg-white border',
+                      )}
+                    >
+                      {plan.cta}
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={async () => {
+                          // Check authentication state first
+                          if (!user) {
+                            console.log('User not authenticated, redirecting to login');
+                            alert('Please login to your account first to make a purchase.');
+                            window.location.href = '/login';
+                            return;
+                          }
 
-                    // Double-check token exists in localStorage
-                    const token = localStorage.getItem('authToken');
-                    if (!token) {
-                      console.log('No token found in localStorage');
-                      alert('Authentication token not found. Please login again.');
-                      window.location.href = '/login';
-                      return;
-                    }
+                          // Double-check token exists in localStorage
+                          const token = localStorage.getItem('authToken');
+                          if (!token) {
+                            console.log('No token found in localStorage');
+                            alert('Authentication token not found. Please login again.');
+                            window.location.href = '/login';
+                            return;
+                          }
 
-                    try {
-                      console.log('Starting payment process for authenticated user:', user.email);
-                      await pay(
-                        'USD',
-                        plan.name === 'Starter'
-                          ? 'BASIC'
-                          : plan.name === 'Pro'
-                            ? 'PRO'
-                            : 'UNLIMITED',
-                        billingCycle === 'yearly' ? 'YEAR' : 'MONTH',
-                      );
-                    } catch (error: any) {
-                      console.error('Payment error:', error);
-                    }
-                  }}
-                >
-                  {plan.cta}
-                </button>
+                          try {
+                            console.log(
+                              'Starting payment process for authenticated user:',
+                              user.email,
+                            );
+                            await pay(
+                              'USD',
+                              plan.name === 'Starter'
+                                ? 'BASIC'
+                                : plan.name === 'Pro'
+                                  ? 'PRO'
+                                  : 'UNLIMITED',
+                              billingCycle === 'yearly' ? 'YEAR' : 'MONTH',
+                            );
+                          } catch (error: any) {
+                            console.error('Payment error:', error);
+                          }
+                        }}
+                      >
+                        Continue
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
 
                 {/* Features */}
                 <ul className="space-y-3 mt-auto">
