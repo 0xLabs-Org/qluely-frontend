@@ -11,7 +11,6 @@ export async function pay(
     console.log('All localStorage keys:', Object.keys(localStorage));
     console.log('token value:', localStorage.getItem('token'));
     console.log('userData value:', localStorage.getItem('userData'));
-    console.log('old authToken value:', localStorage.getItem('authToken'));
     console.log('========================');
 
     // Check if user is authenticated

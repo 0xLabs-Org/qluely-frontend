@@ -99,7 +99,7 @@ const PricingComponent = ({ id }: PricingProps) => {
     try {
       // Check if we're on the client side
       if (typeof window !== 'undefined') {
-        return localStorage.getItem('authToken');
+        return localStorage.getItem('token');
       }
       return null;
     } catch (error) {
@@ -253,7 +253,7 @@ const PricingComponent = ({ id }: PricingProps) => {
                   <AlertDialogTrigger asChild>
                     <button
                       className={clsx(
-                        'w-full py-3.5 rounded-xl font-medium mb-8',
+                        'w-full py-3.5 rounded-xl font-medium mb-8 cursor-pointer',
                         plan.ctaStyle === 'solid' ? 'bg-slate-900 text-white' : 'bg-white border',
                       )}
                     >
@@ -278,7 +278,7 @@ const PricingComponent = ({ id }: PricingProps) => {
                           }
 
                           // Double-check token exists in localStorage
-                          const token = localStorage.getItem('authToken');
+                          const token = localStorage.getItem('token');
                           if (!token) {
                             console.log('No token found in localStorage');
                             alert('Authentication token not found. Please login again.');
