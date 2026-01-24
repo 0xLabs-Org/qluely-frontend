@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { STORAGE_KEYS } from '@/lib/storage';
 
 interface User {
   id: string;
@@ -30,18 +31,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const checkAuth = () => {
       try {
-        // Migration: check for old token key and move to new key
-        const oldToken = localStorage.getItem('authToken');
-        const currentToken = localStorage.getItem('token');
-
-        if (oldToken && !currentToken) {
-          console.log('Migrating old authToken to new storage key');
-          localStorage.setItem('token', oldToken);
-          localStorage.removeItem('authToken');
-        }
-
-        const token = localStorage.getItem('token');
-        const userData = localStorage.getItem('userData');
+        const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
+        const userData = localStorage.getItem(STORAGE_KEYS.USER_DATA);
 
         if (token && userData) {
           const parsedUser = JSON.parse(userData);
@@ -50,20 +41,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
         } else if (token) {
           // If we have a token but no userData, clear the token
           console.log('Found token but no userData, clearing token');
-          localStorage.removeItem('token');
+          localStorage.removeItem(STORAGE_KEYS.TOKEN);
         }
       } catch (error) {
         console.error('Error checking auth:', error);
         // Clear invalid data
-        localStorage.removeItem('token');
-        localStorage.removeItem('userData');
-        localStorage.removeItem('authToken'); // Clear old key too
+        localStorage.removeItem(STORAGE_KEYS.TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.USER_DATA);
       } finally {
         setIsLoading(false);
       }
     };
 
     checkAuth();
+
+    // Listen for logout events from other parts of the app (e.g., payment service)
+    const handleLogout = () => {
+      console.log('Auth logout event received, clearing user state');
+      setUser(null);
+    };
+
+    window.addEventListener('auth-logout', handleLogout);
+
+    return () => {
+      window.removeEventListener('auth-logout', handleLogout);
+    };
   }, []);
 
   const login = (token: string, userData: User) => {
@@ -71,21 +73,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
       token: token.substring(0, 20) + '...',
       userData,
     });
-    localStorage.setItem('token', token);
-    localStorage.setItem('userData', JSON.stringify(userData));
+    localStorage.setItem(STORAGE_KEYS.TOKEN, token);
+    localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
     setUser(userData);
     console.log('AuthContext login completed, user state updated');
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userData');
-    localStorage.removeItem('authToken'); // Clean up old key too
+    localStorage.removeItem(STORAGE_KEYS.TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.USER_DATA);
     setUser(null);
   };
 
   const updateUser = (userData: User) => {
-    localStorage.setItem('userData', JSON.stringify(userData));
+    localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
     setUser(userData);
   };
 

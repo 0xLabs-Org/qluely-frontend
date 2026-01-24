@@ -70,25 +70,38 @@ export async function POST(request: NextRequest) {
     // Get headers from the original request
     const headers: Record<string, string> = {};
     request.headers.forEach((value, key) => {
-      // Forward relevant headers, skip host and other problematic headers
-      if (key.toLowerCase() !== 'host' && key.toLowerCase() !== 'content-length') {
-        headers[key] = value;
+      // Forward all headers except problematic ones, normalized to lowercase
+      const keyLower = key.toLowerCase();
+      if (keyLower !== 'host' && keyLower !== 'content-length') {
+        headers[keyLower] = value;
       }
     });
 
-    // Extract and forward JWT token
-    const authHeader = request.headers.get('authorization');
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      headers['authorization'] = authHeader;
-    }
-
-    // Set content-type if not present
+    // Ensure content-type is set
     if (!headers['content-type']) {
       headers['content-type'] = 'application/json';
     }
 
+    // Log the authorization header status
+    const hasAuthHeader = !!headers['authorization'];
+    console.log(
+      'Order proxy: Authorization header status:',
+      hasAuthHeader ? `present (${headers['authorization']?.substring(0, 50)}...)` : 'MISSING!',
+    );
+
+    if (!hasAuthHeader) {
+      console.log('Order proxy: ERROR - No Authorization header in request!');
+      console.log('Order proxy: Request headers received:', Object.keys(headers));
+    }
+
     console.log('Order proxy: Making request to backend:', `${backendUrl}/api/v1/payment/order`);
-    console.log('Order proxy: Request headers:', headers);
+    console.log('Order proxy: Headers being forwarded:', {
+      'content-type': headers['content-type'],
+      'authorization-present': !!headers['authorization'],
+      'other-headers': Object.keys(headers).filter(
+        (k) => k !== 'content-type' && k !== 'authorization',
+      ),
+    });
 
     // Make the proxy request to the backend
     const response = await fetch(`${backendUrl}/api/v1/payment/order`, {
@@ -98,10 +111,16 @@ export async function POST(request: NextRequest) {
     });
 
     console.log('Order proxy: Backend response status:', response.status);
+    console.log('Order proxy: Backend response headers:', {
+      contentType: response.headers.get('content-type'),
+    });
 
     // Get response data
     const responseData = await response.json();
-    console.log('Order proxy: Backend response data:', responseData);
+    console.log(
+      'Order proxy: Backend response data:',
+      JSON.stringify(responseData).substring(0, 200),
+    );
 
     // Return the backend response with consistent format
     if (response.ok) {
@@ -115,12 +134,21 @@ export async function POST(request: NextRequest) {
         { status: response.status },
       );
     } else {
+      // Return the error response, including detailed information
       return NextResponse.json(
         {
           success: false,
           error: true,
           message: responseData.message || 'Failed to create order',
           data: responseData.data || null,
+          debugInfo:
+            process.env.NODE_ENV === 'development'
+              ? {
+                  backendStatus: response.status,
+                  backendMessage: responseData.message,
+                  proxyReceivedAuthHeader: !!headers['authorization'],
+                }
+              : undefined,
         },
         { status: response.status },
       );

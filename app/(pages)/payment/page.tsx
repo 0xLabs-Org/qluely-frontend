@@ -5,6 +5,7 @@ import { CheckCircle, XCircle, CreditCard, Smartphone, Coins } from 'lucide-reac
 import { Button } from '@/components/ui/button';
 import { useEffect, useState, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { STORAGE_KEYS } from '@/lib/storage';
 
 function PaymentPageContent() {
   const searchParams = useSearchParams();
@@ -26,7 +27,7 @@ function PaymentPageContent() {
   const refreshUserProfile = async () => {
     try {
       console.log('Refreshing user profile after payment...');
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
 
       if (!token) {
         console.log('No token found, skipping profile refresh');
@@ -66,7 +67,7 @@ function PaymentPageContent() {
 
       if (result.success && result.data) {
         console.log('Updating user data with fresh profile');
-        localStorage.setItem('userData', JSON.stringify(result.data));
+        localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(result.data));
         updateUser(result.data);
         console.log('User data updated successfully');
       } else {

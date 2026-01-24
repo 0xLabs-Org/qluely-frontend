@@ -8,6 +8,8 @@ import { cn } from '@/lib/utils';
 import { NumberTicker } from './ui/number-ticker';
 import { pay } from '@/lib/payment/pay';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/contexts/ToastContext';
+import { STORAGE_KEYS } from '@/lib/storage';
 
 import {
   AlertDialog,
@@ -93,13 +95,14 @@ type PricingProps = { id?: string };
 const PricingComponent = ({ id }: PricingProps) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const { user, isLoading } = useAuth();
+  const { addToast } = useToast();
 
   // Safe localStorage check
   const getAuthToken = () => {
     try {
       // Check if we're on the client side
       if (typeof window !== 'undefined') {
-        return localStorage.getItem('token');
+        return localStorage.getItem(STORAGE_KEYS.TOKEN);
       }
       return null;
     } catch (error) {
@@ -180,7 +183,7 @@ const PricingComponent = ({ id }: PricingProps) => {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
                 className={clsx(
-                  'relative p-8 rounded-3xl border shadow-sm flex flex-col bg-gradient-to-b hover:shadow-xl hover:-translate-y-1 transition-all',
+                  'relative p-8 rounded-3xl border shadow-sm flex flex-col bg-linear-to-b hover:shadow-xl hover:-translate-y-1 transition-all',
                   plan.gradient,
                 )}
               >
@@ -272,17 +275,27 @@ const PricingComponent = ({ id }: PricingProps) => {
                           // Check authentication state first
                           if (!user) {
                             console.log('User not authenticated, redirecting to login');
-                            alert('Please login to your account first to make a purchase.');
-                            window.location.href = '/login';
+                            addToast(
+                              'Please login to your account first to make a purchase.',
+                              'error',
+                            );
+                            setTimeout(() => {
+                              window.location.href = '/login';
+                            }, 1500);
                             return;
                           }
 
                           // Double-check token exists in localStorage
-                          const token = localStorage.getItem('token');
+                          const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
                           if (!token) {
                             console.log('No token found in localStorage');
-                            alert('Authentication token not found. Please login again.');
-                            window.location.href = '/login';
+                            addToast(
+                              'Authentication token not found. Please login again.',
+                              'error',
+                            );
+                            setTimeout(() => {
+                              window.location.href = '/login';
+                            }, 1500);
                             return;
                           }
 
@@ -302,6 +315,7 @@ const PricingComponent = ({ id }: PricingProps) => {
                             );
                           } catch (error: any) {
                             console.error('Payment error:', error);
+                            addToast(error.message || 'Payment failed. Please try again.', 'error');
                           }
                         }}
                       >
