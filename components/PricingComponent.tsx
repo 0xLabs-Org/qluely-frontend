@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Sparkles, Zap, Box } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -94,6 +94,7 @@ type PricingProps = { id?: string };
 
 const PricingComponent = ({ id }: PricingProps) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [userAccountType, setUserAccountType] = useState<string | null>(null);
   const { user, isLoading } = useAuth();
   const { addToast } = useToast();
 
@@ -110,6 +111,30 @@ const PricingComponent = ({ id }: PricingProps) => {
       return null;
     }
   };
+
+  // Get user account type from localStorage
+  const getUserAccountType = () => {
+    try {
+      if (typeof window !== 'undefined') {
+        const userDataStr = localStorage.getItem('userData');
+        if (userDataStr) {
+          const userData = JSON.parse(userDataStr);
+          return userData.accountType || null;
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error('Error parsing userData from localStorage:', error);
+      return null;
+    }
+  };
+
+  // Update account type on mount and when user changes
+  useEffect(() => {
+    const accountType = getUserAccountType();
+    setUserAccountType(accountType);
+    console.log('User account type:', accountType);
+  }, [user]);
 
   console.log('PricingComponent - Auth state:', {
     user,
@@ -170,6 +195,14 @@ const PricingComponent = ({ id }: PricingProps) => {
             const Icon = plan.icon;
             const isStarter = plan.name === 'Starter';
 
+            // Determine if plan should be disabled based on user account type
+            const isDisabled = (() => {
+              if (!userAccountType || userAccountType === 'FREE') return false; // Show all for free users
+              if (userAccountType === 'BASIC') return plan.name === 'Starter'; // Disable BASIC for BASIC users
+              if (userAccountType === 'PRO') return plan.name === 'Starter' || plan.name === 'Pro'; // Disable BASIC and PRO for PRO users
+              return false;
+            })();
+
             const monthlyEquivalent =
               billingCycle === 'yearly' ? Math.ceil(plan.yearlyPrice / 12) : plan.monthlyPrice;
 
@@ -185,6 +218,7 @@ const PricingComponent = ({ id }: PricingProps) => {
                 className={clsx(
                   'relative p-8 rounded-3xl border shadow-sm flex flex-col bg-linear-to-b hover:shadow-xl hover:-translate-y-1 transition-all',
                   plan.gradient,
+                  isDisabled && 'opacity-50 cursor-not-allowed',
                 )}
               >
                 {plan.popular && (
@@ -252,78 +286,92 @@ const PricingComponent = ({ id }: PricingProps) => {
                 )}
 
                 {/* CTA */}
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <button
-                      className={clsx(
-                        'w-full py-3.5 rounded-xl font-medium mb-8 cursor-pointer',
-                        plan.ctaStyle === 'solid' ? 'bg-slate-900 text-white' : 'bg-white border',
-                      )}
-                    >
-                      {plan.cta}
-                    </button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                      <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={async () => {
-                          // Check authentication state first
-                          if (!user) {
-                            console.log('User not authenticated, redirecting to login');
-                            addToast(
-                              'Please login to your account first to make a purchase.',
-                              'error',
-                            );
-                            setTimeout(() => {
-                              window.location.href = '/login';
-                            }, 1500);
-                            return;
-                          }
-
-                          // Double-check token exists in localStorage
-                          const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
-                          if (!token) {
-                            console.log('No token found in localStorage');
-                            addToast(
-                              'Authentication token not found. Please login again.',
-                              'error',
-                            );
-                            setTimeout(() => {
-                              window.location.href = '/login';
-                            }, 1500);
-                            return;
-                          }
-
-                          try {
-                            console.log(
-                              'Starting payment process for authenticated user:',
-                              user.email,
-                            );
-                            await pay(
-                              'USD',
-                              plan.name === 'Starter'
-                                ? 'BASIC'
-                                : plan.name === 'Pro'
-                                  ? 'PRO'
-                                  : 'UNLIMITED',
-                              billingCycle === 'yearly' ? 'YEAR' : 'MONTH',
-                            );
-                          } catch (error: any) {
-                            console.error('Payment error:', error);
-                            addToast(error.message || 'Payment failed. Please try again.', 'error');
-                          }
-                        }}
+                {isDisabled ? (
+                  <button
+                    disabled
+                    className="w-full py-3.5 rounded-xl font-medium mb-8 bg-slate-200 text-slate-500 cursor-not-allowed"
+                  >
+                    Already Subscribed
+                  </button>
+                ) : (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button
+                        className={clsx(
+                          'w-full py-3.5 rounded-xl font-medium mb-8 cursor-pointer',
+                          plan.ctaStyle === 'solid' ? 'bg-slate-900 text-white' : 'bg-white border',
+                        )}
                       >
-                        Continue
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                        {plan.cta}
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={async () => {
+                            // Check authentication state first
+                            if (!user) {
+                              console.log('User not authenticated, redirecting to login');
+                              addToast(
+                                'Please login to your account first to make a purchase.',
+                                'error',
+                              );
+                              setTimeout(() => {
+                                window.location.href = '/login';
+                              }, 1500);
+                              return;
+                            }
+
+                            // Double-check token exists in localStorage
+                            const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
+                            if (!token) {
+                              console.log('No token found in localStorage');
+                              addToast(
+                                'Authentication token not found. Please login again.',
+                                'error',
+                              );
+                              setTimeout(() => {
+                                window.location.href = '/login';
+                              }, 1500);
+                              return;
+                            }
+
+                            try {
+                              console.log(
+                                'Starting payment process for authenticated user:',
+                                user.email,
+                              );
+                              await pay(
+                                'USD',
+                                plan.name === 'Starter'
+                                  ? 'BASIC'
+                                  : plan.name === 'Pro'
+                                    ? 'PRO'
+                                    : 'UNLIMITED',
+                                billingCycle === 'yearly' ? 'YEAR' : 'MONTH',
+                              );
+                            } catch (error: any) {
+                              console.error('Payment error:', error);
+                              addToast(
+                                error.message || 'Payment failed. Please try again.',
+                                'error',
+                              );
+                            }
+                          }}
+                        >
+                          Continue
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
 
                 {/* Features */}
                 <ul className="space-y-3 mt-auto">
