@@ -30,11 +30,12 @@ model User {
   password  String
   createdAt DateTime @default(now())
   account   Account?
+  Detail    Detail?
   Order     Order[]
 }
 
 model Order {
-  id              String        @id
+  id        String   @id @default(uuid())
   receipt         String
   userId          String
   amount          Int
@@ -50,14 +51,35 @@ model Order {
 }
 
 model Payment {
-  id                String   @id
+  id        String   @id @default(uuid())
   razorpayOrderId   String   @unique
   razorpayPaymentId String?
   razorpaySignature String?
   orderId           String
-  method            String
+  method            String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime
+}
+
+model Detail {
+  id        String   @id @default(uuid())
+  userId            String    @unique
+  role              UserRole?
+  primaryUseCase    UseCase?
+  onboardingSkipped Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime
+  User              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Plan {
+  id        String   @id @default(uuid())
+  name         AccountTypes @unique @default(FREE)
+  description  String
+  monthlyPrice Int
+  yearlyPrice  Int
+  dicount      Int?
+  popular      Boolean      @default(false)
 }
 
 enum AccountTypes {
@@ -82,4 +104,23 @@ enum PaymentStatus {
   PAID
   FAILED
   REFUNDED
+}
+
+enum UseCase {
+  MEETINGS_SUMMARIES
+  INTERVIEWS
+  SALES_CALLS
+  TEAM_STANDUPS
+  CLIENT_CALLS
+  OTHER
+}
+
+enum UserRole {
+  FOUNDER
+  PRODUCT_MANAGER
+  ENGINEER
+  RECRUITER
+  SALES_MARKETING
+  STUDENT
+  OTHER
 }

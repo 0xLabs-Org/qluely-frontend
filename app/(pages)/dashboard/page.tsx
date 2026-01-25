@@ -1,23 +1,64 @@
 // app/dashboard/page.tsx
-"use client";
+'use client';
 
-import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import Navigation from "@/components/Navigation";
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import Navigation from '@/components/Navigation';
 
 export default function DashboardPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !user) {
       // Redirect to login if not authenticated
-      router.push("/login");
+      router.push('/login');
+      return;
     }
-  }, [user, isLoading, router]);
 
-  if (isLoading) {
+    if (!isLoading && user && !onboardingChecked) {
+      // Check if onboarding is completed
+      checkOnboarding();
+    }
+  }, [user, isLoading, router, onboardingChecked]);
+
+  const checkOnboarding = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.push('/login');
+        return;
+      }
+
+      const response = await fetch('/api/v1/user/detail', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.data) {
+          // Detail exists, onboarding completed
+          setOnboardingChecked(true);
+        } else {
+          // No detail, redirect to onboarding
+          router.push('/onboarding');
+        }
+      } else {
+        // Error fetching, redirect to onboarding
+        router.push('/onboarding');
+      }
+    } catch (error) {
+      console.error('Error checking onboarding:', error);
+      // On error, redirect to onboarding to be safe
+      router.push('/onboarding');
+    }
+  };
+
+  if (isLoading || !onboardingChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -57,7 +98,7 @@ export default function DashboardPage() {
                 </div>
                 <div>
                   <span className="text-sm text-gray-500">Account Type:</span>
-                  <p className="text-gray-900 capitalize">{user.accountType || "FREE"}</p>
+                  <p className="text-gray-900 capitalize">{user.accountType || 'FREE'}</p>
                 </div>
                 <div>
                   <span className="text-sm text-gray-500">User ID:</span>

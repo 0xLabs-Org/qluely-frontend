@@ -72,8 +72,8 @@ export default function RegisterPage() {
           console.log('Extracted user data:', userData);
           login(token, userData);
 
-          // Redirect to dashboard
-          router.push('/dashboard');
+          // Redirect to onboarding
+          router.push('/onboarding');
         } catch (decodeError) {
           console.error('Failed to decode token:', decodeError);
           throw new Error('Invalid token received from server');
