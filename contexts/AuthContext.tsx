@@ -95,7 +95,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const setOnboardingComplete = () => {
     if (user) {
       const updatedUser = { ...user, isOnboarded: true };
-      localStorage.setItem('userData', JSON.stringify(updatedUser));
+      localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(updatedUser));
       setUser(updatedUser);
     }
   };
