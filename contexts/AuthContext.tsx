@@ -6,6 +6,7 @@ interface User {
   id: string;
   email: string;
   accountType?: string;
+  isOnboarded?: boolean;
 }
 
 interface AuthContextType {
@@ -14,6 +15,7 @@ interface AuthContextType {
   login: (token: string, userData: User) => void;
   logout: () => void;
   updateUser: (userData: User) => void;
+  setOnboardingComplete: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -89,7 +91,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUser(userData);
   };
 
-  const value: AuthContextType = { user, isLoading, login, logout, updateUser };
+  const setOnboardingComplete = () => {
+    if (user) {
+      const updatedUser = { ...user, isOnboarded: true };
+      localStorage.setItem('userData', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+    }
+  };
+
+  const value: AuthContextType = {
+    user,
+    isLoading,
+    login,
+    logout,
+    updateUser,
+    setOnboardingComplete,
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
