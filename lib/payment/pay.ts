@@ -1,21 +1,16 @@
 'use client';
 
+import { STORAGE_KEYS } from '@/lib/storage';
+
 export async function pay(
   currency: 'INR' | 'USD' = 'USD',
   plan: 'BASIC' | 'PRO' | 'UNLIMITED' = 'BASIC',
   period: 'MONTH' | 'YEAR' = 'MONTH',
 ) {
   try {
-    // Debug localStorage contents
-    console.log('=== Payment Debug Info ===');
-    console.log('All localStorage keys:', Object.keys(localStorage));
-    console.log('token value:', localStorage.getItem('token'));
-    console.log('userData value:', localStorage.getItem('userData'));
-    console.log('========================');
-
     // Check if user is authenticated
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('userData');
+    const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
+    const userData = localStorage.getItem(STORAGE_KEYS.USER_DATA);
 
     if (!token || !userData) {
       console.log('Missing token or userData:', { hasToken: !!token, hasUserData: !!userData });
@@ -26,39 +21,28 @@ export async function pay(
     if (!token.startsWith('eyJ')) {
       // JWT tokens start with eyJ
       console.warn('Token format appears invalid');
-      localStorage.removeItem('token');
-      localStorage.removeItem('userData');
+      localStorage.removeItem(STORAGE_KEYS.TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.USER_DATA);
       throw new Error('Invalid authentication token. Please login again.');
     }
 
-    // Try to decode the token to check if it's valid
-    try {
-      const tokenParts = token.split('.');
-      if (tokenParts.length !== 3) {
-        throw new Error('Invalid token structure');
-      }
-      const payload = JSON.parse(atob(tokenParts[1]));
-      console.log('Token payload:', payload);
-      console.log('Token expiration:', new Date(payload.exp * 1000));
-      console.log('Current time:', new Date());
+    // Log token info (don't validate JWT locally - backend will verify it)
+    console.log('Pay.ts: Token exists, length:', token.length);
+    console.log('Pay.ts: Token starts with:', token.substring(0, 30) + '...');
 
-      if (payload.exp && payload.exp * 1000 < Date.now()) {
-        throw new Error('Token has expired');
-      }
-    } catch (tokenError) {
-      console.error('Token validation error:', tokenError);
-      localStorage.removeItem('token');
-      localStorage.removeItem('userData');
-      throw new Error('Invalid or expired authentication token. Please login again.');
-    }
-
+    const authHeaderValue = `Bearer ${token}`;
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      Authorization: authHeaderValue,
     };
 
-    console.log('Creating order with:', { currency, plan, period });
-    console.log('Using token:', token.substring(0, 20) + '...');
+    console.log('Pay.ts: Creating order with:', { currency, plan, period });
+    console.log('Pay.ts: Token extracted from STORAGE_KEYS.TOKEN:', token.substring(0, 20) + '...');
+    console.log(
+      'Pay.ts: Authorization header being sent:',
+      authHeaderValue.substring(0, 40) + '...',
+    );
+    console.log('Pay.ts: All headers keys:', Object.keys(headers));
 
     const res = await fetch('/api/v1/payment/order', {
       method: 'POST',
@@ -66,17 +50,21 @@ export async function pay(
       body: JSON.stringify({ currency, plan, period }),
     });
 
-    console.log('Order response status:', res.status);
+    console.log('Pay.ts: Order response received with status:', res.status);
 
     if (!res.ok) {
       const errorResponse = await res.json();
-      console.error('Order creation failed:', res.status, errorResponse);
+      console.error('Pay.ts: Order creation failed with status:', res.status);
+      console.error('Pay.ts: Error response:', errorResponse);
 
       // Handle token expiration/invalid token
       if (res.status === 401) {
-        console.log('Token expired or invalid, clearing localStorage');
-        localStorage.removeItem('token');
-        localStorage.removeItem('userData');
+        console.log('Pay.ts: Got 401 Unauthorized - token may be expired or invalid');
+        console.log('Pay.ts: Clearing token from localStorage and dispatching logout event');
+        localStorage.removeItem(STORAGE_KEYS.TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+        // Dispatch logout event to notify AuthContext
+        window.dispatchEvent(new Event('auth-logout'));
 
         const message = errorResponse.message || 'Authentication failed';
         if (message.includes('token') || message.includes('expired')) {
@@ -107,7 +95,7 @@ export async function pay(
       name: 'Qluely',
       description: `${plan}`,
       handler: async (response: any) => {
-        const token = localStorage.getItem('token');
+        // Use the token from outer scope instead of retrieving again
         const headers: Record<string, string> = {
           'Content-Type': 'application/json',
         };
@@ -130,6 +118,10 @@ export async function pay(
           console.error('Payment verification failed:', verifyRes.status, verifyResponse);
 
           if (verifyRes.status === 401 || verifyResponse.message?.includes('token')) {
+            localStorage.removeItem(STORAGE_KEYS.TOKEN);
+            localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+            // Dispatch logout event to notify AuthContext
+            window.dispatchEvent(new Event('auth-logout'));
             throw new Error('Your session has expired. Please login again.');
           }
 
@@ -156,11 +148,14 @@ export async function pay(
             console.log('Updating token with refreshToken');
 
             // Update localStorage with new token
-            localStorage.setItem('token', refreshResponse.data.refreshToken);
+            localStorage.setItem(STORAGE_KEYS.TOKEN, refreshResponse.data.refreshToken);
 
-            // Update userData if provided
+            // Update userData if available
             if (refreshResponse.data.user) {
-              localStorage.setItem('userData', JSON.stringify(refreshResponse.data.user));
+              localStorage.setItem(
+                STORAGE_KEYS.USER_DATA,
+                JSON.stringify(refreshResponse.data.user),
+              );
             }
 
             // Fetch fresh user profile data after payment
@@ -179,7 +174,7 @@ export async function pay(
 
               if (profileRes.ok && profileResponse.success && profileResponse.data) {
                 console.log('Updating user data with fresh profile data');
-                localStorage.setItem('userData', JSON.stringify(profileResponse.data));
+                localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(profileResponse.data));
               }
             } catch (profileError) {
               console.error('Failed to fetch fresh profile data:', profileError);
