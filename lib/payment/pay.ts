@@ -44,6 +44,7 @@ export async function pay(
     );
     console.log('Pay.ts: All headers keys:', Object.keys(headers));
 
+    //create order using proxy server
     const res = await fetch('/api/v1/payment/order', {
       method: 'POST',
       headers,
@@ -58,21 +59,21 @@ export async function pay(
       console.error('Pay.ts: Error response:', errorResponse);
 
       // Handle token expiration/invalid token
-      if (res.status === 401) {
-        console.log('Pay.ts: Got 401 Unauthorized - token may be expired or invalid');
-        console.log('Pay.ts: Clearing token from localStorage and dispatching logout event');
-        localStorage.removeItem(STORAGE_KEYS.TOKEN);
-        localStorage.removeItem(STORAGE_KEYS.USER_DATA);
-        // Dispatch logout event to notify AuthContext
-        window.dispatchEvent(new Event('auth-logout'));
+      // if (res.status === 401) {
+      //   console.log('Pay.ts: Got 401 Unauthorized - token may be expired or invalid');
+      //   console.log('Pay.ts: Clearing token from localStorage and dispatching logout event');
+      //   localStorage.removeItem(STORAGE_KEYS.TOKEN);
+      //   localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+      //   // Dispatch logout event to notify AuthContext
+      //   window.dispatchEvent(new Event('auth-logout'));
 
-        const message = errorResponse.message || 'Authentication failed';
-        if (message.includes('token') || message.includes('expired')) {
-          throw new Error('Your session has expired. Please login again.');
-        }
+      //   const message = errorResponse.message || 'Authentication failed';
+      //   if (message.includes('token') || message.includes('expired')) {
+      //     throw new Error('Your session has expired. Please login again.');
+      //   }
 
-        throw new Error('Authentication failed. Please login again.');
-      }
+      //   throw new Error('Authentication failed. Please login again.');
+      // }
 
       throw new Error(errorResponse.message || `Failed to create order: ${res.status}`);
     }
@@ -104,7 +105,7 @@ export async function pay(
 
         console.log('verify params', response);
         console.log('before verify', headers);
-
+        //verify payment using payment signature
         const verifyRes = await fetch('/api/v1/payment/verify', {
           method: 'POST',
           headers,
@@ -117,13 +118,13 @@ export async function pay(
         if (!verifyRes.ok || !verifyResponse.success) {
           console.error('Payment verification failed:', verifyRes.status, verifyResponse);
 
-          if (verifyRes.status === 401 || verifyResponse.message?.includes('token')) {
-            localStorage.removeItem(STORAGE_KEYS.TOKEN);
-            localStorage.removeItem(STORAGE_KEYS.USER_DATA);
-            // Dispatch logout event to notify AuthContext
-            window.dispatchEvent(new Event('auth-logout'));
-            throw new Error('Your session has expired. Please login again.');
-          }
+          // if (verifyRes.status === 401 || verifyResponse.message?.includes('token')) {
+          //   localStorage.removeItem(STORAGE_KEYS.TOKEN);
+          //   localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+          //   // Dispatch logout event to notify AuthContext
+          //   window.dispatchEvent(new Event('auth-logout'));
+          //   throw new Error('Your session has expired. Please login again.');
+          // }
 
           throw new Error(verifyResponse.message || 'Payment verification failed');
         }
