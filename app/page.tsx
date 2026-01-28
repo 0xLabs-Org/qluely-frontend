@@ -1,22 +1,22 @@
-"use client";
-import { ArrowUpRight, Fullscreen } from "lucide-react";
-import "./globals.css";
-import { motion } from "motion/react";
-import { useOS } from "@/hooks/useOs";
-import Navigation from "@/components/Navigation";
-import { HeroVideoDialog } from "@/components/ui/hero-video-dialog";
-import FeatureSection from "@/components/Features";
-import Image from "next/image";
-import PricingComponent from "@/components/PricingComponent";
-import { DotPattern } from "@/components/ui/dot-pattern";
-import { cn } from "@/lib/utils";
-import { FAQ } from "@/components/FAQ";
-import Footer from "@/components/Footer";
+'use client';
+import { ArrowUpRight } from 'lucide-react';
+import './globals.css';
+import { motion } from 'motion/react';
+import { useOS } from '@/hooks/useOs';
+import Navigation from '@/components/Navigation';
+import { HeroVideoDialog } from '@/components/ui/hero-video-dialog';
+import FeatureSection from '@/components/Features';
+import Image from 'next/image';
+import PricingComponent from '@/components/PricingComponent';
+import { DotPattern } from '@/components/ui/dot-pattern';
+import { cn } from '@/lib/utils';
+import { FAQ } from '@/components/FAQ';
+import Footer from '@/components/Footer';
 
-export const ApplicationURL: Record<"macOS" | "Linux" | "Windows", string> = {
-  macOS: "https://github.com/0xLabs-Org/Qluely/releases/download/v1.0.0/Qluely.1.0.2.exe",
-  Linux: "https://github.com/0xLabs-Org/Qluely/releases/download/v1.0.0/Qluely.1.0.2.exe",
-  Windows: "https://github.com/0xLabs-Org/Qluely/releases/download/v1.0.0/Qluely.1.0.2.exe",
+export const ApplicationURL: Record<'macOS' | 'Linux' | 'Windows', string> = {
+  macOS: 'https://github.com/0xLabs-Org/Qluely/releases/download/v1.0.0/Qluely.1.0.2.exe',
+  Linux: 'https://github.com/0xLabs-Org/Qluely/releases/download/v1.0.0/Qluely.1.0.2.exe',
+  Windows: 'https://github.com/0xLabs-Org/Qluely/releases/download/v1.0.0/Qluely.1.0.2.exe',
 };
 
 export default function QluelyLanding() {
@@ -106,8 +106,8 @@ export default function QluelyLanding() {
         <DotPattern
           width={20}
           className={cn(
-            "[mask-image:radial-gradient(300px_circle_at_center,white,transparent)]",
-            "absolute top-0 left-0 z-0",
+            '[mask-image:radial-gradient(300px_circle_at_center,white,transparent)]',
+            'absolute top-0 left-0 z-0',
           )}
         />
         <div className="flex flex-col gap-5 justify-center items-center relative z-10">
