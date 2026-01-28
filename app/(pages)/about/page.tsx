@@ -78,13 +78,13 @@ export default function AboutPage() {
             </Card>
 
             <Card
-              className={`p-8 bg-gradient-to-br from-purple-500 to-pink-600 text-white border-0 shadow-xl transform transition-all duration-700 hover:scale-105 delay-100 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}
+              className={`p-8 bg-gradient-to-br from-blue-500 to-purple-600 text-white border-0 shadow-xl transform transition-all duration-700 hover:scale-105 delay-100 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}
             >
               <div className="flex items-center gap-3 mb-4">
                 <Lightbulb className="w-8 h-8" />
                 <h2 className="text-2xl font-bold">Our Vision</h2>
               </div>
-              <p className="text-purple-100 text-lg leading-relaxed">
+              <p className="text-blue-100 text-lg leading-relaxed">
                 A world where technology seamlessly enhances human capability, where every
                 professional has access to intelligent assistance that respects privacy and
                 maintains authenticity.

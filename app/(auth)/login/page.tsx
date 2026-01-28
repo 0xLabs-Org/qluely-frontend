@@ -58,13 +58,18 @@ export default function LoginPage() {
             id: payload.userId || payload.id || 'unknown',
             email: formData.email, // Use the email from the login form since it's not in token
             accountType: payload.plan || payload.accountType || 'FREE',
+            isOnboarded: payload.isOnboarded || false,
           };
 
           console.log('Extracted user data:', userData);
           login(token, userData);
 
-          // Redirect to dashboard
-          router.push('/dashboard');
+          // Redirect based on onboarding status
+          if (!userData.isOnboarded) {
+            router.push('/onboarding');
+          } else {
+            router.push('/dashboard');
+          }
         } catch (decodeError) {
           console.error('Failed to decode token:', decodeError);
           throw new Error('Invalid token received from server');

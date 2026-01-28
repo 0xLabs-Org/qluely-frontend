@@ -67,13 +67,14 @@ export default function RegisterPage() {
             id: payload.userId || payload.id || 'unknown',
             email: formData.email, // Use the email from the registration form since it's not in token
             accountType: payload.plan || payload.accountType || 'FREE',
+            isOnboarded: payload.isOnboarded || false,
           };
 
           console.log('Extracted user data:', userData);
           login(token, userData);
 
-          // Redirect to dashboard
-          router.push('/dashboard');
+          // Redirect to onboarding for new users
+          router.push('/onboarding');
         } catch (decodeError) {
           console.error('Failed to decode token:', decodeError);
           throw new Error('Invalid token received from server');

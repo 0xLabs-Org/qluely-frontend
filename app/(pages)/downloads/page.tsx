@@ -1,5 +1,5 @@
 import React from "react";
-import { Monitor, Laptop } from "lucide-react";
+import { Monitor, Laptop, Apple, Terminal } from "lucide-react";
 import { StoreBadge } from "@/components/StoreBadge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -10,15 +10,16 @@ export interface DownloadItem {
   name: string;
   storeName: string;
   storeIconType:
-    | "microsoft"
-    | "apple"
-    | "snap"
-    | "playstore"
-    | "galaxy"
-    | "firefox"
-    | "chrome"
-    | "opera";
+  | "microsoft"
+  | "apple"
+  | "snap"
+  | "playstore"
+  | "galaxy"
+  | "firefox"
+  | "chrome"
+  | "opera";
   href: string;
+  icon: React.ReactNode;
 }
 
 export interface DownloadCategory {
@@ -44,16 +45,41 @@ const categories: DownloadCategory = {
       storeName: "Microsoft",
       storeIconType: "microsoft",
       href: "#",
+      icon: (
+        <svg className="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M0 0v11.408h11.408V0H0zm12.592 0v11.408H24V0h-11.408zM0 12.592V24h11.408V12.592H0zm12.592 0V24H24V12.592h-11.408z" />
+        </svg>
+      ),
     },
-    { id: "mac", name: "MacOS", storeName: "Mac App Store", storeIconType: "apple", href: "#" },
-    { id: "linux", name: "Linux", storeName: "Snap Store", storeIconType: "snap", href: "#" },
+    {
+      id: "mac",
+      name: "MacOS",
+      storeName: "Mac App Store",
+      storeIconType: "apple",
+      href: "#",
+      icon: <Apple className="w-6 h-6 text-gray-900" />,
+    },
+    {
+      id: "linux",
+      name: "Linux",
+      storeName: "Snap Store",
+      storeIconType: "snap",
+      href: "#",
+      icon: (
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/3/35/Tux.svg"
+          className="w-7 h-7"
+          alt="Linux"
+        />
+      ),
+    },
   ],
 };
 export const DownloadSection = () => {
   return (
     <section className="relative px-6 max-w-7xl mx-auto grid-background overflow-hidden">
       <div className="text-center mb-16 relative z-10">
-        <h2 className="text-4xl md:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
+        <h2 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 bg-clip-text text-transparent mb-6 tracking-tight">
           Download for all your devices
         </h2>
         <div className="max-w-3xl mx-auto space-y-2 text-center">
