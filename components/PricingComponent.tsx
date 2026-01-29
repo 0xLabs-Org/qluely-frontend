@@ -22,21 +22,61 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+
+export type PlanType = 'BASIC' | 'PRO' | 'FREE' | 'UNLIMITED';
+export type PremiumPlanType = 'BASIC' | 'PRO' | 'UNLIMITED';
+export type CurrencyType = 'INR' | 'USD';
+export type BillingCycle = 'MONTH' | 'YEAR';
+export type PlanPricing = Record<BillingCycle, number>;
+
+export const PLAN: Record<CurrencyType, Record<PremiumPlanType, PlanPricing>> = {
+  INR: {
+    BASIC: {
+      MONTH: 1199,
+      YEAR: 12899,
+    },
+    PRO: {
+      MONTH: 2499,
+      YEAR: 22999,
+    },
+    UNLIMITED: {
+      MONTH: 4199,
+      YEAR: 34999,
+    },
+  },
+  USD: {
+    BASIC: {
+      MONTH: 15,
+      YEAR: 139,
+    },
+    PRO: {
+      MONTH: 29,
+      YEAR: 279,
+    },
+    UNLIMITED: {
+      MONTH: 49,
+      YEAR: 349,
+    },
+  },
+};
+
+const CURRENCY_SYMBOLS: Record<CurrencyType, string> = {
+  INR: '₹',
+  USD: '$',
+};
 const plans = [
   {
     name: 'Starter',
+    planKey: 'BASIC' as PremiumPlanType,
     description: 'Best for individuals getting started',
-    monthlyPrice: 19,
-    onboardingPrice: 15, // first month only
-    yearlyPrice: 190,
     icon: Sparkles,
-    gradient: 'from-blue-50 to-indigo-50',
-    iconColor: 'text-blue-500',
-    iconBg: 'bg-blue-100',
+    gradient: 'from-slate-50 to-gray-50',
+    iconColor: 'text-slate-500',
+    iconBg: 'bg-slate-100',
     cta: 'Get Started',
     ctaStyle: 'outline',
     features: [
-      '5 credits per month (1 credit = 1 hour)',
+      '3 credits per month (1 credit = 1 hour)',
       'Unlimited chat',
       '60 image requests per month',
       'Audio usage consumes credits',
@@ -46,9 +86,8 @@ const plans = [
   },
   {
     name: 'Pro',
+    planKey: 'PRO' as PremiumPlanType,
     description: 'For professionals and regular users',
-    monthlyPrice: 29,
-    yearlyPrice: 290,
     popular: true,
     icon: Zap,
     gradient: 'from-amber-50 to-orange-50',
@@ -67,13 +106,12 @@ const plans = [
   },
   {
     name: 'Unlimited',
+    planKey: 'UNLIMITED' as PremiumPlanType,
     description: 'For daily and high-intensity users',
-    monthlyPrice: 59,
-    yearlyPrice: 599,
     icon: Box,
-    gradient: 'from-cyan-50 to-blue-50',
-    iconColor: 'text-cyan-500',
-    iconBg: 'bg-cyan-100',
+    gradient: 'from-slate-50 to-gray-50',
+    iconColor: 'text-slate-500',
+    iconBg: 'bg-slate-100',
     cta: 'Go Unlimited',
     ctaStyle: 'outline',
     features: [
@@ -94,9 +132,12 @@ type PricingProps = { id?: string };
 
 const PricingComponent = ({ id }: PricingProps) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [currency, setCurrency] = useState<CurrencyType>('INR');
   const [userAccountType, setUserAccountType] = useState<string | null>(null);
   const { user, isLoading } = useAuth();
   const { addToast } = useToast();
+
+  const currencySymbol = CURRENCY_SYMBOLS[currency];
 
   // Safe localStorage check
   const getAuthToken = () => {
@@ -166,25 +207,50 @@ const PricingComponent = ({ id }: PricingProps) => {
               Transparent pricing designed for sustainable AI usage.
             </p>
 
-            <div className="relative w-56 h-11 rounded-full border bg-white p-1 flex items-center">
-              <div
-                className={cn(
-                  'absolute top-1 left-1 h-9 w-1/2 rounded-full bg-green-100 transition-all',
-                  billingCycle === 'yearly' && 'translate-x-[90%]',
-                )}
-              />
-              <button
-                onClick={() => setBillingCycle('monthly')}
-                className="relative z-10 w-1/2 text-sm font-medium"
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setBillingCycle('yearly')}
-                className="relative z-10 w-1/2 text-sm font-medium"
-              >
-                Yearly
-              </button>
+            <div className="flex gap-3">
+              {/* Currency Toggle */}
+              <div className="relative w-24 h-11 rounded-full border bg-white p-1 flex items-center">
+                <div
+                  className={cn(
+                    'absolute top-1 left-1 h-9 w-1/2 rounded-full bg-blue-100 transition-all',
+                    currency === 'USD' && 'translate-x-[90%]',
+                  )}
+                />
+                <button
+                  onClick={() => setCurrency('INR')}
+                  className="relative z-10 w-1/2 text-sm font-medium"
+                >
+                  ₹
+                </button>
+                <button
+                  onClick={() => setCurrency('USD')}
+                  className="relative z-10 w-1/2 text-sm font-medium"
+                >
+                  $
+                </button>
+              </div>
+
+              {/* Billing Cycle Toggle */}
+              <div className="relative w-56 h-11 rounded-full border bg-white p-1 flex items-center">
+                <div
+                  className={cn(
+                    'absolute top-1 left-1 h-9 w-1/2 rounded-full bg-green-100 transition-all',
+                    billingCycle === 'yearly' && 'translate-x-[90%]',
+                  )}
+                />
+                <button
+                  onClick={() => setBillingCycle('monthly')}
+                  className="relative z-10 w-1/2 text-sm font-medium"
+                >
+                  Monthly
+                </button>
+                <button
+                  onClick={() => setBillingCycle('yearly')}
+                  className="relative z-10 w-1/2 text-sm font-medium"
+                >
+                  Yearly
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -193,7 +259,6 @@ const PricingComponent = ({ id }: PricingProps) => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {plans.map((plan, index) => {
             const Icon = plan.icon;
-            const isStarter = plan.name === 'Starter';
 
             // Determine if plan should be disabled based on user account type
             const isDisabled = (() => {
@@ -203,10 +268,12 @@ const PricingComponent = ({ id }: PricingProps) => {
               return false;
             })();
 
+            const monthlyPrice = PLAN[currency][plan.planKey].MONTH;
+            const yearlyPrice = PLAN[currency][plan.planKey].YEAR;
             const monthlyEquivalent =
-              billingCycle === 'yearly' ? Math.ceil(plan.yearlyPrice / 12) : plan.monthlyPrice;
+              billingCycle === 'yearly' ? Math.ceil(yearlyPrice / 12) : monthlyPrice;
 
-            const yearlyDiscount = calculateDiscount(plan.monthlyPrice * 12, plan.yearlyPrice);
+            const yearlyDiscount = calculateDiscount(monthlyPrice * 12, yearlyPrice);
 
             return (
               <motion.div
@@ -219,6 +286,7 @@ const PricingComponent = ({ id }: PricingProps) => {
                   'relative p-8 rounded-3xl border shadow-sm flex flex-col bg-linear-to-b hover:shadow-xl hover:-translate-y-1 transition-all',
                   plan.gradient,
                   isDisabled && 'opacity-50 cursor-not-allowed',
+                  plan.popular && 'lg:-my-5 lg:py-20 lg:shadow-lg',
                 )}
               >
                 {plan.popular && (
@@ -238,30 +306,13 @@ const PricingComponent = ({ id }: PricingProps) => {
                 <p className="text-slate-500 text-sm mb-6">{plan.description}</p>
 
                 {/* Pricing */}
-                {billingCycle === 'monthly' && isStarter && (
-                  <>
-                    <div className="flex items-end gap-3 mb-2">
-                      <span className="text-2xl text-slate-400 line-through">
-                        ${plan.monthlyPrice}
-                      </span>
-                      <span className="text-5xl font-semibold text-slate-900">
-                        <NumberTicker value={plan.onboardingPrice!} />{' '}
-                        <span className="text-2xl font-semibold text-slate-900">$</span>
-                      </span>
-                      <span className="text-slate-400">/ month</span>
-                    </div>
-                    <p className="text-xs text-slate-500 mb-6">
-                      Intro price for first month only, then ${plan.monthlyPrice}
-                      /month
-                    </p>
-                  </>
-                )}
-
-                {billingCycle === 'monthly' && !isStarter && (
+                {billingCycle === 'monthly' && (
                   <div className="flex items-baseline gap-2 mb-8">
                     <span className="text-5xl font-semibold">
-                      <NumberTicker value={plan.monthlyPrice} />{' '}
-                      <span className="text-2xl font-semibold text-slate-900">$</span>
+                      <NumberTicker value={monthlyPrice} />{' '}
+                      <span className="text-2xl font-semibold text-slate-900">
+                        {currencySymbol}
+                      </span>
                     </span>
                     <span className="text-slate-400">/ month</span>
                   </div>
@@ -271,13 +322,16 @@ const PricingComponent = ({ id }: PricingProps) => {
                   <>
                     <div className="flex items-end gap-2 mb-1">
                       <span className="text-5xl font-semibold">
-                        <NumberTicker value={plan.yearlyPrice} />{' '}
-                        <span className="text-2xl font-semibold text-slate-900">$</span>
+                        <NumberTicker value={yearlyPrice} />{' '}
+                        <span className="text-2xl font-semibold text-slate-900">
+                          {currencySymbol}
+                        </span>
                       </span>
                       <span className="text-slate-400">/ year</span>
                     </div>
                     <p className="text-sm text-slate-500 mb-2">
-                      ${monthlyEquivalent} / month billed annually
+                      {currencySymbol}
+                      {monthlyEquivalent} / month billed annually
                     </p>
                     <p className="text-sm font-medium text-green-600 mb-6">
                       Save {yearlyDiscount}%
@@ -349,12 +403,8 @@ const PricingComponent = ({ id }: PricingProps) => {
                                 user.email,
                               );
                               await pay(
-                                'USD',
-                                plan.name === 'Starter'
-                                  ? 'BASIC'
-                                  : plan.name === 'Pro'
-                                    ? 'PRO'
-                                    : 'UNLIMITED',
+                                currency,
+                                plan.planKey,
                                 billingCycle === 'yearly' ? 'YEAR' : 'MONTH',
                               );
                             } catch (error: any) {
