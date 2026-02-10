@@ -309,7 +309,7 @@ const PricingComponent = ({ id }: PricingProps) => {
                 {billingCycle === 'monthly' && (
                   <div className="flex items-baseline gap-2 mb-8">
                     <span className="text-5xl font-semibold">
-                      <NumberTicker value={monthlyPrice} />{' '}
+                      <NumberTicker value={monthlyPrice} startValue={monthlyPrice * 1.1} />{' '}
                       <span className="text-2xl font-semibold text-slate-900">
                         {currencySymbol}
                       </span>
@@ -322,7 +322,7 @@ const PricingComponent = ({ id }: PricingProps) => {
                   <>
                     <div className="flex items-end gap-2 mb-1">
                       <span className="text-5xl font-semibold">
-                        <NumberTicker value={yearlyPrice} />{' '}
+                        <NumberTicker value={yearlyPrice} startValue={yearlyPrice * 1.1} />{' '}
                         <span className="text-2xl font-semibold text-slate-900">
                           {currencySymbol}
                         </span>

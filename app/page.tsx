@@ -12,7 +12,7 @@ import { DotPattern } from '@/components/ui/dot-pattern';
 import { cn } from '@/lib/utils';
 import { FAQ } from '@/components/FAQ';
 import Footer from '@/components/Footer';
-
+import thumbnail from '../assets/thumbnail.png';
 export const ApplicationURL: Record<'macOS' | 'Linux' | 'Windows', string> = {
   macOS: 'https://github.com/0xLabs-Org/Qluely/releases/download/v1.0.0/Qluely.1.0.2.exe',
   Linux: 'https://github.com/0xLabs-Org/Qluely/releases/download/v1.0.0/Qluely.1.0.2.exe',
@@ -83,8 +83,8 @@ export default function QluelyLanding() {
           <HeroVideoDialog
             className="block dark:hidden mt-8 w-full max-w-[320px] sm:max-w-sm md:max-w-[640px] lg:max-w-[800px] xl:max-w-[900px] aspect-video"
             animationStyle="from-center"
-            videoSrc="https://www.youtube.com/embed/qh3NGpYRG3I?si=4rb-zSdDkVK9qxxb"
-            thumbnailSrc="https://startup-template-sage.vercel.app/hero-light.png"
+            videoSrc="https://youtube.com/embed/4NOum3zjNqg?si=RxRQp30fcU1MKPrU"
+            thumbnailSrc={thumbnail}
             thumbnailAlt="Hero Video"
           />
         </div>
