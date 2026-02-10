@@ -45,7 +45,7 @@ const CreditIcon = () => (
 
 // Plan limits configuration
 const PLAN_LIMITS: Record<AccountType, { audioMinutes: number; imageRequests: number }> = {
-  [AccountType.FREE]: { audioMinutes: 60, imageRequests: 10 },
+  [AccountType.FREE]: { audioMinutes: 5, imageRequests: 5 },
   [AccountType.BASIC]: { audioMinutes: 300, imageRequests: 50 },
   [AccountType.PRO]: { audioMinutes: 720, imageRequests: 100 },
   [AccountType.UNLIMITED]: { audioMinutes: 600, imageRequests: 2000 },
@@ -177,7 +177,7 @@ export default function DashboardPage() {
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <StatsCard
-              title="Meeting Minutes"
+              title="Meeting Credits"
               icon={<ClockIcon />}
               value={Number(credits)}
               total={Number(credits) + Number(creditsRemaining)}
