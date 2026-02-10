@@ -55,26 +55,8 @@ export async function pay(
 
     if (!res.ok) {
       const errorResponse = await res.json();
-      console.error('Pay.ts: Order creation failed with status:', res.status);
+      console.error('Pay.ts: Order creation failed with status:', res.status); //[Debug]
       console.error('Pay.ts: Error response:', errorResponse);
-
-      // Handle token expiration/invalid token
-      // if (res.status === 401) {
-      //   console.log('Pay.ts: Got 401 Unauthorized - token may be expired or invalid');
-      //   console.log('Pay.ts: Clearing token from localStorage and dispatching logout event');
-      //   localStorage.removeItem(STORAGE_KEYS.TOKEN);
-      //   localStorage.removeItem(STORAGE_KEYS.USER_DATA);
-      //   // Dispatch logout event to notify AuthContext
-      //   window.dispatchEvent(new Event('auth-logout'));
-
-      //   const message = errorResponse.message || 'Authentication failed';
-      //   if (message.includes('token') || message.includes('expired')) {
-      //     throw new Error('Your session has expired. Please login again.');
-      //   }
-
-      //   throw new Error('Authentication failed. Please login again.');
-      // }
-
       throw new Error(errorResponse.message || `Failed to create order: ${res.status}`);
     }
 
@@ -118,77 +100,7 @@ export async function pay(
         if (!verifyRes.ok || !verifyResponse.success) {
           console.error('Payment verification failed:', verifyRes.status, verifyResponse);
 
-          // if (verifyRes.status === 401 || verifyResponse.message?.includes('token')) {
-          //   localStorage.removeItem(STORAGE_KEYS.TOKEN);
-          //   localStorage.removeItem(STORAGE_KEYS.USER_DATA);
-          //   // Dispatch logout event to notify AuthContext
-          //   window.dispatchEvent(new Event('auth-logout'));
-          //   throw new Error('Your session has expired. Please login again.');
-          // }
-
           throw new Error(verifyResponse.message || 'Payment verification failed');
-        }
-
-        console.log('Payment verified successfully');
-
-        // Call refresh route to get updated token
-        try {
-          console.log('Calling refresh route...');
-          const refreshRes = await fetch('/api/v1/refresh', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-          });
-
-          const refreshResponse = await refreshRes.json();
-          console.log('Refresh response:', refreshResponse);
-
-          if (refreshRes.ok && refreshResponse.success && refreshResponse.data?.refreshToken) {
-            console.log('Updating token with refreshToken');
-
-            // Update localStorage with new token
-            localStorage.setItem(STORAGE_KEYS.TOKEN, refreshResponse.data.refreshToken);
-
-            // Update userData if available
-            if (refreshResponse.data.user) {
-              localStorage.setItem(
-                STORAGE_KEYS.USER_DATA,
-                JSON.stringify(refreshResponse.data.user),
-              );
-            }
-
-            // Fetch fresh user profile data after payment
-            try {
-              console.log('Fetching fresh user profile data...');
-              const profileRes = await fetch('/api/v1/user/profile', {
-                method: 'GET',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${refreshResponse.data.refreshToken}`,
-                },
-              });
-
-              const profileResponse = await profileRes.json();
-              console.log('Profile response:', profileResponse);
-
-              if (profileRes.ok && profileResponse.success && profileResponse.data) {
-                console.log('Updating user data with fresh profile data');
-                localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(profileResponse.data));
-              }
-            } catch (profileError) {
-              console.error('Failed to fetch fresh profile data:', profileError);
-              // Don't throw error here, payment was successful
-            }
-
-            console.log('Token and user data updated successfully');
-          } else {
-            console.log('No refresh token received or refresh failed:', refreshResponse.message);
-          }
-        } catch (refreshError) {
-          console.error('Token refresh failed:', refreshError);
-          // Don't throw error here, payment was successful
         }
 
         window.location.href = `/payment?verification=true`;

@@ -1,89 +1,90 @@
-import { UserDetails } from '@/lib/types';
 import { NextRequest, NextResponse } from 'next/server';
+import jwt from 'jsonwebtoken';
+import { prisma } from '@/lib/prisma';
+import { STATUS, UserDetails as UserDetailsType } from '@/lib/types';
+import cache from '@/lib/cache';
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('User details proxy: Received request');
-    const backendUrl = process.env.BACKEND_API_URL;
+    console.log('[USER] User details request received');
 
-    if (!backendUrl) {
-      console.error('User details proxy: BACKEND_API_URL not configured');
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(
-        {
-          success: false,
-          error: true,
-          message: 'Backend API URL not configured',
-          data: null,
-        },
-        { status: 500 },
+        { success: false, error: true, message: 'Unauthorized' },
+        { status: STATUS.UNAUTHORIZED },
       );
     }
 
-    console.log('User details proxy: Backend URL:', backendUrl);
-
-    // Get headers from the original request
-    const headers: Record<string, string> = {};
-    request.headers.forEach((value, key) => {
-      // Forward relevant headers, skip host and other problematic headers
-      if (key.toLowerCase() !== 'host' && key.toLowerCase() !== 'content-length') {
-        headers[key] = value;
-      }
-    });
-
-    // Extract and forward JWT token
-    const authHeader = request.headers.get('authorization');
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      headers['authorization'] = authHeader;
+    const token = authHeader.replace('Bearer ', '');
+    let decoded: any;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET || '');
+    } catch (err) {
+      console.log('[USER] Token verification failed', err);
+      return NextResponse.json(
+        { success: false, error: true, message: 'Unauthorized' },
+        { status: STATUS.UNAUTHORIZED },
+      );
     }
 
-    // Set content-type if not present
-    if (!headers['content-type']) {
-      headers['content-type'] = 'application/json';
+    const userId = decoded?.id;
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: true, message: 'Unauthorized' },
+        { status: STATUS.UNAUTHORIZED },
+      );
     }
 
-    console.log(
-      'User details proxy: Making request to backend:',
-      `${backendUrl}/api/v1/user/details`,
-    );
+    // Try cache
+    const cacheKey = `user:${userId}`;
+    const cached = await cache.get(cacheKey);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      console.log(`[CACHE] user details fetched from cache for user: ${userId}`);
+      return NextResponse.json(
+        { success: true, error: false, message: 'details fetched', data: parsed },
+        { status: STATUS.OK },
+      );
+    }
 
-    // Make the proxy request to the backend
-    const response = await fetch(`${backendUrl}/api/v1/user/details`, {
-      method: 'GET',
-      headers,
+    // Build details from DB
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { account: true },
     });
 
-    const responseData = await response.json();
-    console.log('User details proxy: Backend response status:', response.status);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: true, message: 'details not found' },
+        { status: STATUS.BAD_REQUEST },
+      );
+    }
+
+    const account = user.account;
+    const details: UserDetailsType = {
+      plan: (account?.plan as any) ?? 'FREE',
+      period: (account?.period as any) ?? null,
+      planStartedAt: account?.planStartedAt ?? null,
+      planExpiresAt: account?.planExpiresAt ?? null,
+      creditsRemaining: account?.creditsRemaining ?? 0,
+      creditsUsed: account?.creditsUsed ?? 0,
+      imageCredits: account?.imageCredits ?? 0,
+      audioCredits: account?.audioCredits ?? 0,
+    };
+
+    // Cache for 2 hours
+    await cache.setWithTTL(cacheKey, JSON.stringify(details), 2 * 60 * 60);
+
     return NextResponse.json(
-      {
-        success: true,
-        error: false,
-        message: 'user details fetched',
-        data: responseData.data,
-      },
-      { status: 200 },
+      { success: true, error: false, message: 'details fetched', data: details },
+      { status: STATUS.OK },
     );
   } catch (error) {
-    console.error('User details proxy: Error:', error);
-
-    // Check if it's a connection error
-    const cause = error instanceof TypeError ? (error.cause as { code?: string }) : null;
-    const isConnectionError =
-      error instanceof TypeError &&
-      (error.message === 'fetch failed' || cause?.code === 'ECONNREFUSED');
-
-    const message = isConnectionError
-      ? 'Backend server is not reachable. Please ensure the backend is running.'
-      : 'Failed to proxy request to backend';
-
+    console.error('[USER] Error fetching user details:', error);
     return NextResponse.json(
-      {
-        success: false,
-        error: true,
-        message,
-        data: null,
-      },
-      { status: 503 },
+      { success: false, error: true, message: 'error while fetching user details' },
+      { status: STATUS.INTERNAL_SERVER_ERROR },
     );
   }
 }

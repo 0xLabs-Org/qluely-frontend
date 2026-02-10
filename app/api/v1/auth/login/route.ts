@@ -1,162 +1,82 @@
+import { prisma } from '@/lib/prisma';
+import { loginSchema } from '@/lib/zod/schema';
 import { NextRequest, NextResponse } from 'next/server';
-
-type LoginRequest = {
-  email: string;
-  password: string;
-};
+import bcrypt from 'bcryptjs';
+import { generateToken } from '@/helper/auth';
+import { AccountType, STATUS } from '@/lib/types';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('Login proxy: Received request');
-    const backendUrl = process.env.BACKEND_API_URL;
-
-    if (!backendUrl) {
-      console.error('Login proxy: BACKEND_API_URL not configured');
-      return NextResponse.json(
-        {
-          success: false,
-          error: true,
-          message: 'Backend API URL not configured',
-          data: null,
-        },
-        { status: 500 },
-      );
-    }
-
-    console.log('Login proxy: Backend URL:', backendUrl);
-
-    // Get the request body
     const body = await request.json();
-    console.log('Login proxy: Request body:', { email: body.email, password: '[REDACTED]' });
-
-    // Validate request body
-    if (!body.email || typeof body.email !== 'string') {
+    const parsed = loginSchema.safeParse(body);
+    if (!parsed.success) {
+      console.log('[LOGIN] Validation failed:', parsed.error.flatten());
       return NextResponse.json(
-        {
-          success: false,
-          error: true,
-          message: 'Missing or invalid email',
-          data: null,
-        },
-        { status: 400 },
+        { errors: parsed.error.flatten().fieldErrors },
+        { status: STATUS.UNPROCESSABLE_ENTITY },
       );
     }
 
-    if (!body.password || typeof body.password !== 'string') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: true,
-          message: 'Missing or invalid password',
-          data: null,
-        },
-        { status: 400 },
-      );
+    const { email, password } = parsed.data;
+    console.log('[LOGIN] Parsed data:', { email, passwordLength: password?.length });
+
+    if (!email || !password) {
+      console.log('[LOGIN] Missing credentials:', { email: !!email, password: !!password });
+      return NextResponse.json({ message: 'Missing credentials' }, { status: STATUS.BAD_REQUEST });
     }
 
-    // Get headers from the original request
-    const headers: Record<string, string> = {};
-    request.headers.forEach((value, key) => {
-      // Forward relevant headers, skip host and other problematic headers
-      if (key.toLowerCase() !== 'host' && key.toLowerCase() !== 'content-length') {
-        headers[key] = value;
-      }
+    console.log('[LOGIN] Looking up user:', email);
+    const user = await prisma.user.findFirst({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        account: true,
+        isOnboarded: true,
+        onboardingSkipped: true,
+      },
     });
 
-    // Set content-type if not present
-    if (!headers['content-type']) {
-      headers['content-type'] = 'application/json';
+    if (!user) {
+      console.log('[LOGIN] User not found:', email);
+      return NextResponse.json({ message: 'Invalid credentials' }, { status: STATUS.BAD_REQUEST });
     }
 
-    console.log('Login proxy: Making request to backend:', `${backendUrl}/api/v1/login`);
+    console.log('[LOGIN] Comparing password...');
+    const match = await bcrypt.compare(password, user.password!);
 
-    // Make the proxy request to the backend
-    const response = await fetch(`${backendUrl}/api/v1/login`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body),
-    });
-
-    console.log('Login proxy: Backend response status:', response.status);
-    console.log('Login proxy: Response content-type:', response.headers.get('content-type'));
-
-    // Check if response is JSON
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      const textResponse = await response.text();
-      console.log('Login proxy: Non-JSON response:', textResponse.substring(0, 200));
-      return NextResponse.json(
-        {
-          success: false,
-          error: true,
-          message: 'Backend returned non-JSON response',
-          data: {
-            details: `Status: ${response.status}, Content-Type: ${contentType}`,
-            preview: textResponse.substring(0, 100) + '...',
-          },
-        },
-        { status: 502 },
-      );
+    if (!match) {
+      console.log('[LOGIN] Password mismatch for user:', email);
+      return NextResponse.json({ message: 'Invalid credentials' }, { status: STATUS.UNAUTHORIZED });
     }
 
-    // Get response data
-    let responseData;
-    try {
-      responseData = await response.json();
-    } catch (parseError) {
-      const textResponse = await response.text();
-      console.error('Login proxy: JSON parse error:', parseError);
-      console.log('Login proxy: Raw response:', textResponse.substring(0, 200));
-      return NextResponse.json(
-        {
-          success: false,
-          error: true,
-          message: 'Failed to parse backend response',
-          data: {
-            details: textResponse.substring(0, 100) + '...',
-          },
-        },
-        { status: 502 },
-      );
-    }
+    console.log('[LOGIN] Password verified successfully');
+    const token = generateToken(user.id, (user.account?.plan as string) || AccountType.FREE);
 
-    console.log('Login proxy: Backend response data:', {
-      success: responseData.success,
-      hasToken: !!responseData.data?.token,
-    });
-
-    // Return the backend response with consistent format
-    if (response.ok && responseData.success) {
-      return NextResponse.json(
-        {
-          success: true,
-          error: false,
-          message: responseData.message || 'Login successful',
-          data: responseData.data,
-        },
-        { status: response.status },
-      );
-    } else {
-      return NextResponse.json(
-        {
-          success: false,
-          error: true,
-          message: responseData.message || 'Login failed',
-          data: responseData.data || null,
-        },
-        { status: response.status },
-      );
-    }
-  } catch (error) {
-    console.error('Login proxy error:', error);
     return NextResponse.json(
       {
-        success: false,
-        error: true,
-        message: 'Failed to proxy request to backend',
-        data: null,
+        success: true,
+        error: false,
+        message: 'User logged in successfully',
+        data: {
+          token,
+          userId: user.id,
+          isOnboarded: user.isOnboarded,
+          onboardingSkipped: user.onboardingSkipped,
+        },
       },
-      { status: 500 },
+      { status: STATUS.ACCEPTED },
+    );
+  } catch (error) {
+    console.error('[LOGIN] Error during login:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+    });
+    return NextResponse.json(
+      { success: false, error: true, message: 'failed to login' },
+      { status: STATUS.INTERNAL_SERVER_ERROR },
     );
   }
 }

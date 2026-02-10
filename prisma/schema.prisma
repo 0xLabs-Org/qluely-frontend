@@ -25,16 +25,21 @@ model Account {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  account   Account?
-  Order     Order[]
+  id                String    @id @default(uuid())
+  email             String    @unique
+  password          String
+  createdAt         DateTime  @default(now())
+  isOnboarded       Boolean   @default(false)
+  onboardedAt       DateTime?
+  onboardingSkipped Boolean   @default(false)
+  role              String?
+  useCases          String[]  @default([])
+  account           Account?
+  Order             Order[]
 }
 
 model Order {
-  id              String        @id
+  id              String        @id @default(uuid())
   receipt         String
   userId          String
   amount          Int
@@ -50,14 +55,44 @@ model Order {
 }
 
 model Payment {
-  id                String   @id
+  id                String   @id @default(uuid())
   razorpayOrderId   String   @unique
   razorpayPaymentId String?
   razorpaySignature String?
   orderId           String
-  method            String
+  method            String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime
+}
+
+model Meeting {
+  id        String    @id @default(uuid())
+  userId    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+  Request   Request[]
+}
+
+model Plan {
+  id              String        @id @default(uuid())
+  name            AccountTypes
+  description     String
+  monthlyPrice    Int
+  yearlyPrice     Int
+  popular         Boolean       @default(false)
+  monthlyDiscount Int?
+  yearlyDiscount  Int?
+  currency        CurrencyTypes
+
+  @@unique([name, currency])
+}
+
+model Request {
+  id        String  @id @default(uuid())
+  meetingId String
+  request   String
+  response  String
+  Meeting   Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
 }
 
 enum AccountTypes {
@@ -82,4 +117,38 @@ enum PaymentStatus {
   PAID
   FAILED
   REFUNDED
+}
+
+enum UseCase {
+  MEETINGS_SUMMARIES
+  INTERVIEWS
+  SALES_CALLS
+  TEAM_STANDUPS
+  CLIENT_CALLS
+  OTHER
+  CODE_GENERATION
+  CODE_REVIEW
+  DEBUGGING
+  LEARNING
+  DOCUMENTATION
+  RESEARCH
+  PROTOTYPING
+  AUTOMATION
+  DATA_ANALYSIS
+}
+
+enum UserRole {
+  FOUNDER
+  PRODUCT_MANAGER
+  ENGINEER
+  RECRUITER
+  SALES_MARKETING
+  STUDENT
+  OTHER
+  DEVELOPER
+  DESIGNER
+  RESEARCHER
+  BUSINESS_ANALYST
+  DATA_SCIENTIST
+  ENTREPRENEUR
 }

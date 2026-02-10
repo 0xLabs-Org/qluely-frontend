@@ -52,10 +52,6 @@ export async function POST(request: NextRequest) {
 
     // Get response data
     const responseData = await response.json();
-    console.log('Refresh proxy: Backend response data:', {
-      success: responseData.success,
-      hasRefreshToken: !!responseData.data?.refreshToken,
-    });
 
     // Return the backend response with consistent format
     if (response.ok && responseData.success) {
