@@ -146,8 +146,8 @@ export default function DashboardPage() {
   const credits = userDetails?.creditsUsed;
   const creditsRemaining = userDetails?.creditsRemaining;
   const audioCredits = userDetails?.audioCredits;
-  const ImageCredits = userDetails?.imageCredits;
   const TotalImageCredits = PLAN_LIMITS[plan].imageRequests;
+  const ImageCredits = TotalImageCredits - (userDetails?.imageCredits || 0);
   const period = userDetails?.period;
   const planStart = userDetails?.planStartedAt;
   const planEnd = userDetails?.planExpiresAt;

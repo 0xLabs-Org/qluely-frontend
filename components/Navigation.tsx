@@ -104,6 +104,13 @@ export default function Navigation({ className }: NavigationProps) {
                     </p>
                   </div>
                   <Link
+                    href="/dashboard"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
                     href="/downloads"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     onClick={() => setDropdownOpen(false)}

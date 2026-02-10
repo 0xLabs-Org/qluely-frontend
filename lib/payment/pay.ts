@@ -105,6 +105,28 @@ export async function pay(
           throw new Error(verifyResponse.message || 'Payment verification failed');
         }
 
+        // Try to refresh the client-side user profile so UI updates immediately
+        try {
+          const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
+          if (token) {
+            const profileRes = await fetch('/api/v1/user/details', {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+            });
+            const profileJson = await profileRes.json();
+            if (profileRes.ok && profileJson && profileJson.data) {
+              localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(profileJson.data));
+              // notify other tabs/components to refresh auth state
+              window.dispatchEvent(new Event('auth-refresh'));
+            }
+          }
+        } catch (e) {
+          console.warn('Failed to refresh profile after payment:', e);
+        }
+
         window.location.href = `/payment?verification=true`;
       },
       modal: {

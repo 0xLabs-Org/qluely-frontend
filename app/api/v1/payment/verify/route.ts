@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import jwt from 'jsonwebtoken';
+import cache from '@/lib/cache';
 
 type VerifyRequest = {
   razorpay_order_id: string;
@@ -86,6 +88,25 @@ export async function POST(request: NextRequest) {
 
     // Return the backend response with consistent format
     if (response.ok) {
+      try {
+        // If we have an auth token, attempt to decode user id and invalidate cached profile
+        const auth = request.headers.get('authorization');
+        if (auth && auth.startsWith('Bearer ')) {
+          const token = auth.replace('Bearer ', '');
+          try {
+            const decoded: any = jwt.verify(token, process.env.JWT_SECRET || '');
+            const userId = decoded?.id;
+            if (userId) {
+              await cache.del(`user:${userId}`);
+              console.log('[CACHE] Invalidated user cache for', userId);
+            }
+          } catch (e) {
+            console.warn('[CACHE] Could not decode token to invalidate cache', e);
+          }
+        }
+      } catch (e) {
+        console.warn('[CACHE] Error while invalidating cache after payment verify', e);
+      }
       return NextResponse.json(
         {
           success: true,
