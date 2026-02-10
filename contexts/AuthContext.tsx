@@ -63,10 +63,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(null);
     };
 
+    // Listen for explicit refresh events (e.g., after payment completes)
+    const handleRefresh = () => {
+      try {
+        const userData = localStorage.getItem(STORAGE_KEYS.USER_DATA);
+        if (userData) {
+          const parsed = JSON.parse(userData);
+          console.log('Auth refresh received, updating user from localStorage:', parsed);
+          setUser(parsed);
+        }
+      } catch (e) {
+        console.error('Failed to refresh auth from localStorage', e);
+      }
+    };
+
     window.addEventListener('auth-logout', handleLogout);
+    window.addEventListener('auth-refresh', handleRefresh);
 
     return () => {
       window.removeEventListener('auth-logout', handleLogout);
+      window.removeEventListener('auth-refresh', handleRefresh);
     };
   }, []);
 

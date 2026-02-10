@@ -20,4 +20,8 @@ export async function setWithTTL(key: string, value: string, ttlSeconds: number)
   memStore.set(key, { value, expiresAt });
 }
 
-export default { get, setWithTTL };
+export async function del(key: string): Promise<void> {
+  memStore.delete(key);
+}
+
+export default { get, setWithTTL, del };
