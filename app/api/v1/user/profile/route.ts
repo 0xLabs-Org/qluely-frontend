@@ -1,65 +1,78 @@
 import { NextRequest, NextResponse } from 'next/server';
+import jwt from 'jsonwebtoken';
+import { prisma } from '@/lib/prisma';
+import { STATUS } from '@/lib/types';
+import { generateToken } from '@/helper/auth';
+import { AccountType } from '@/lib/types';
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('User profile proxy: Received request');
-    const backendUrl = process.env.BACKEND_API_URL;
+    console.log('[USER] Profile refresh request received');
 
-    if (!backendUrl) {
-      console.error('User profile proxy: BACKEND_API_URL not configured');
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(
-        {
-          success: false,
-          error: true,
-          message: 'Backend API URL not configured',
-          data: null,
-        },
-        { status: 500 },
+        { success: false, error: true, message: 'Invalid' },
+        { status: STATUS.CONFLICT },
       );
     }
 
-    console.log('User profile proxy: Backend URL:', backendUrl);
-
-    // Get headers from the original request
-    const headers: Record<string, string> = {};
-    request.headers.forEach((value, key) => {
-      // Forward relevant headers, skip host and other problematic headers
-      if (key.toLowerCase() !== 'host' && key.toLowerCase() !== 'content-length') {
-        headers[key] = value;
-      }
-    });
-
-    // Extract and forward JWT token
-    const authHeader = request.headers.get('authorization');
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      headers['authorization'] = authHeader;
+    const token = authHeader.replace('Bearer ', '');
+    let decoded: any;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET || '');
+    } catch (err) {
+      console.log('[USER] Token verification failed', err);
+      return NextResponse.json(
+        { success: false, error: true, message: 'Unauthorized' },
+        { status: STATUS.UNAUTHORIZED },
+      );
     }
 
-    // Set content-type if not present
-    if (!headers['content-type']) {
-      headers['content-type'] = 'application/json';
+    const userId = decoded?.id;
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: true, message: 'Invalid' },
+        { status: STATUS.CONFLICT },
+      );
     }
 
-    console.log('User profile proxy: Making request to backend:', `${backendUrl}/api/v1/refresh`);
-
-    // Make the proxy request to the backend
-    const response = await fetch(`${backendUrl}/api/v1/refresh`, {
-      method: 'GET',
-      headers,
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        isOnboarded: true,
+        onboardingSkipped: true,
+        email: true,
+        account: { select: { plan: true } },
+      },
     });
-    const data = await response.json();
 
-    return NextResponse.json(data, { status: response.status });
-  } catch (error) {
-    console.error('User profile proxy: Error:', error);
+    if (!user) {
+      return NextResponse.json({ message: 'User not found' }, { status: STATUS.NOT_FOUND });
+    }
+
+    const tokenRefresh = generateToken(userId, (user.account?.plan as string) || AccountType.FREE);
+
     return NextResponse.json(
       {
-        success: false,
-        error: true,
-        message: 'Failed to proxy request to backend',
-        data: null,
+        success: true,
+        error: false,
+        message: 'user logged successful',
+        data: {
+          refreshToken: tokenRefresh,
+          email: user.email,
+          accounntType: user.account?.plan,
+          isOnboarded: user.isOnboarded,
+          onboardingSkipped: user.onboardingSkipped,
+        },
       },
-      { status: 500 },
+      { status: STATUS.OK },
+    );
+  } catch (error) {
+    console.error('[USER] Profile refresh error:', error);
+    return NextResponse.json(
+      { success: false, error: true, message: 'failed to login' },
+      { status: STATUS.INTERNAL_SERVER_ERROR },
     );
   }
 }
