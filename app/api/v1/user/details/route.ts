@@ -51,7 +51,9 @@ export async function GET(request: NextRequest) {
     // Build details from DB
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: { account: true },
+      select: {
+        account: true,
+      },
     });
 
     if (!user) {

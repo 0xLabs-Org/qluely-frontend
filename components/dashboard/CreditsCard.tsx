@@ -23,16 +23,6 @@ export function CreditsCard({ title, icon, credits, lastTopUp }: CreditsCardProp
       </div>
 
       {lastTopUp && <p className="text-sm text-gray-500 mb-3">Last top-up: {lastTopUp}</p>}
-
-      <Link
-        href="/payment"
-        className="text-sm text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1"
-      >
-        Buy more credits
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </Link>
     </div>
   );
 }

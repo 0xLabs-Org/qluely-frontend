@@ -6,6 +6,7 @@ export async function pay(
   currency: 'INR' | 'USD' = 'USD',
   plan: 'BASIC' | 'PRO' | 'UNLIMITED' = 'BASIC',
   period: 'MONTH' | 'YEAR' = 'MONTH',
+  extras?: Record<string, any>,
 ) {
   try {
     // Check if user is authenticated
@@ -45,10 +46,11 @@ export async function pay(
     console.log('Pay.ts: All headers keys:', Object.keys(headers));
 
     //create order using proxy server
+    const bodyPayload = { currency, plan, period, ...(extras || {}) };
     const res = await fetch('/api/v1/payment/order', {
       method: 'POST',
       headers,
-      body: JSON.stringify({ currency, plan, period }),
+      body: JSON.stringify(bodyPayload),
     });
 
     console.log('Pay.ts: Order response received with status:', res.status);
