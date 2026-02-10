@@ -46,9 +46,9 @@ const CreditIcon = () => (
 // Plan limits configuration
 const PLAN_LIMITS: Record<AccountType, { audioMinutes: number; imageRequests: number }> = {
   [AccountType.FREE]: { audioMinutes: 5, imageRequests: 5 },
-  [AccountType.BASIC]: { audioMinutes: 300, imageRequests: 50 },
-  [AccountType.PRO]: { audioMinutes: 720, imageRequests: 100 },
-  [AccountType.UNLIMITED]: { audioMinutes: 600, imageRequests: 2000 },
+  [AccountType.BASIC]: { audioMinutes: 200, imageRequests: 200 },
+  [AccountType.PRO]: { audioMinutes: 800, imageRequests: 800 },
+  [AccountType.UNLIMITED]: { audioMinutes: 1200, imageRequests: 1200 },
 };
 
 // Helper function to format relative time
