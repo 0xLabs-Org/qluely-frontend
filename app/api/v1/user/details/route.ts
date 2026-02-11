@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
 import { STATUS, UserDetails as UserDetailsType } from '@/lib/types';
-import cache from '@/lib/cache';
 
 export async function GET(request: NextRequest) {
   try {
@@ -36,17 +35,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Try cache
-    const cacheKey = `user:${userId}`;
-    const cached = await cache.get(cacheKey);
-    if (cached) {
-      const parsed = JSON.parse(cached);
-      console.log(`[CACHE] user details fetched from cache for user: ${userId}`);
-      return NextResponse.json(
-        { success: true, error: false, message: 'details fetched', data: parsed },
-        { status: STATUS.OK },
-      );
-    }
+    // Fetch fresh details from DB
 
     // Build details from DB
     const user = await prisma.user.findUnique({
@@ -75,8 +64,7 @@ export async function GET(request: NextRequest) {
       audioCredits: account?.audioCredits ?? 0,
     };
 
-    // Cache for 2 hours
-    await cache.setWithTTL(cacheKey, JSON.stringify(details), 2 * 60 * 60);
+    // No caching — always return fresh details
 
     return NextResponse.json(
       { success: true, error: false, message: 'details fetched', data: details },

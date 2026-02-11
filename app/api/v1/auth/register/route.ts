@@ -4,6 +4,7 @@ import { registerSchema } from '@/lib/zod/schema';
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { generateToken } from '@/helper/auth';
+import { publishEvent } from '@/lib/message/publish';
 
 type RegisterRequest = {
   email: string;
@@ -84,6 +85,15 @@ export async function POST(request: NextRequest) {
     const token = generateToken(newUser.id, AccountType.FREE);
     console.log('[REGISTER] Token generated successfully');
     console.log('[REGISTER] Registration successful for:', email);
+    // try {
+    //   await publishEvent('email.send', {
+    //     to: email,
+    //     type: 'REGISTER',
+    //     ideompotencyKey: crypto.randomUUID(),
+    //   });
+    // } catch {
+    //   console.log('Failed to updated user event');
+    // }
     return NextResponse.json(
       {
         success: true,
