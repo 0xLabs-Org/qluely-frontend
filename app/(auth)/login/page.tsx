@@ -63,16 +63,16 @@ export default function LoginPage() {
 
           console.log('Extracted user data:', userData);
           login(token, userData);
-
           // Redirect based on onboarding status
-          if (!userData.isOnboarded) {
-            router.push('/onboarding');
-          } else {
-            router.push('/dashboard');
-          }
         } catch (decodeError) {
           console.error('Failed to decode token:', decodeError);
-          throw new Error('Invalid token received from server');
+          throw new Error('Invalid Credentials');
+        }
+        const userDetailsForRedirecting = data?.data.isOnboarded;
+        if (!userDetailsForRedirecting) {
+          router.push('/onboarding');
+        } else {
+          router.push('/dashboard');
         }
       } else {
         throw new Error(data.message || 'Login failed');
