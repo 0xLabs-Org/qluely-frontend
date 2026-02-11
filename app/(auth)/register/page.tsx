@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,6 +13,13 @@ export default function RegisterPage() {
   const [formData, setFormData] = useState({ email: '', password: '', coupon: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isDesktopSource, setIsDesktopSource] = useState(false);
+
+  // Check if user came from desktop app
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setIsDesktopSource(params.get('source') === 'desktop');
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +59,14 @@ export default function RegisterPage() {
 
         console.log('Received token:', token.substring(0, 30) + '...');
 
-        // Decode JWT token to extract user information
+        // If user came from desktop app, redirect to desktop callback
+        if (isDesktopSource) {
+          console.log('Desktop source detected, redirecting to callback...');
+          router.push(`/desktop-callback?token=${encodeURIComponent(token)}`);
+          return;
+        }
+
+        // Normal web flow - decode JWT token to extract user information
         try {
           const tokenParts = token.split('.');
           if (tokenParts.length !== 3) {
@@ -62,12 +76,14 @@ export default function RegisterPage() {
           const payload = JSON.parse(atob(tokenParts[1]));
           console.log('JWT payload:', payload);
 
-          // Extract user data from token
+          // Extract user data from API response (not from token)
+          // The backend returns user info in data.data.user
           const userData = {
-            id: payload.userId || payload.id || 'unknown',
+            id: data.data?.user?.id || payload.id || 'unknown',
             email: formData.email, // Use the email from the registration form since it's not in token
             accountType: payload.plan || payload.accountType || 'FREE',
-            isOnboarded: payload.isOnboarded || false,
+            isOnboarded: data.data?.user?.isOnboarded || false,
+            onboardingSkipped: data.data?.user?.onboardingSkipped || false,
           };
 
           console.log('Extracted user data:', userData);
