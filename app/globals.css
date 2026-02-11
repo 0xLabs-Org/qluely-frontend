@@ -45,55 +45,70 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
   --animate-gradient: gradient 8s linear infinite;
+
   @keyframes gradient {
     to {
       background-position: var(--bg-size, 300%) 0;
     }
   }
+
   --animate-shimmer-slide: shimmer-slide var(--speed) ease-in-out infinite alternate;
   --animate-spin-around: spin-around calc(var(--speed) * 2) infinite linear;
+
   @keyframes shimmer-slide {
     to {
       transform: translate(calc(100cqw - 100%), 0);
     }
   }
+
   @keyframes spin-around {
     0% {
       transform: translateZ(0) rotate(0);
     }
+
     15%,
     35% {
       transform: translateZ(0) rotate(90deg);
     }
+
     65%,
     85% {
       transform: translateZ(0) rotate(270deg);
     }
+
     100% {
       transform: translateZ(0) rotate(360deg);
     }
   }
+
   --animate-rippling: rippling var(--duration) ease-out;
+
   @keyframes rippling {
     0% {
       opacity: 1;
     }
+
     100% {
       transform: scale(2);
       opacity: 0;
     }
   }
+
   --animate-blob: blob 7s infinite;
+
   @keyframes blob {
     0% {
       transform: translate(0px, 0px) scale(1);
     }
+
     33% {
       transform: translate(30px, -50px) scale(1.1);
     }
+
     66% {
       transform: translate(-20px, 20px) scale(0.9);
     }
+
     100% {
       transform: translate(0px, 0px) scale(1);
     }
@@ -106,6 +121,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -189,6 +205,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -196,4 +213,241 @@
 
 html {
   scroll-behavior: smooth;
+}
+
+/* ========================================
+   DASHBOARD DESIGN SYSTEM
+   "Quietly powerful. Always ready. Effortlessly premium."
+   ======================================== */
+
+:root {
+  /* Dashboard - Core palette */
+  --dash-bg: #f8f9fb;
+  --dash-surface: #ffffff;
+  --dash-elevated: #f3f4f7;
+  --dash-border: #e8eaef;
+  --dash-hover: #f5f6f8;
+
+  /* Dashboard - Text hierarchy */
+  --dash-text-primary: #0f1729;
+  --dash-text-secondary: #4b5468;
+  --dash-text-muted: #8b93a7;
+
+  /* Dashboard - Accent (Deep authoritative blue) */
+  --dash-accent: #3b7dd8;
+  --dash-accent-deep: #2b5ea6;
+  --dash-accent-light: rgba(59, 125, 216, 0.08);
+
+  /* Dashboard - State colors (communicates state, not decoration) */
+  --dash-state-healthy: #3b7dd8;
+  --dash-state-warning: #d4a054;
+  --dash-state-critical: #dc6b6b;
+}
+
+/* Dashboard page wrapper */
+.dash-page {
+  min-height: 100vh;
+  background-color: var(--dash-bg);
+  font-feature-settings: 'cv11' 1, 'ss01' 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Dashboard content container */
+.dash-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+}
+
+@media (min-width: 640px) {
+  .dash-container {
+    padding: 40px 32px 56px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dash-container {
+    padding: 44px 40px 64px;
+  }
+}
+
+/* ---- Card System ---- */
+
+.dash-card {
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-border);
+  border-radius: 14px;
+  padding: 24px;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-card:hover {
+  box-shadow:
+    0 1px 3px rgba(15, 23, 41, 0.04),
+    0 6px 16px rgba(15, 23, 41, 0.03);
+  border-color: #dde0e7;
+}
+
+.dash-card--hero {
+  padding: 32px;
+  border-radius: 16px;
+}
+
+@media (min-width: 640px) {
+  .dash-card {
+    padding: 28px;
+  }
+
+  .dash-card--hero {
+    padding: 36px;
+  }
+}
+
+/* Card anatomy elements */
+.dash-card__label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--dash-text-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.dash-card__value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--dash-text-primary);
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+.dash-card__context {
+  font-size: 13px;
+  color: var(--dash-text-secondary);
+  line-height: 1.5;
+}
+
+/* ---- Dashboard Grid ---- */
+
+.dash-grid-metrics {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .dash-grid-metrics {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.dash-grid-metrics>* {
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-grid-metrics>*>.dash-card {
+  flex: 1;
+}
+
+/* ---- Skeleton loading ---- */
+
+.dash-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--dash-elevated);
+  border-radius: 8px;
+}
+
+.dash-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.5) 50%,
+      transparent 100%);
+  animation: dash-shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes dash-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ---- Dashboard Greeting ---- */
+
+.dash-greeting {
+  margin-bottom: 36px;
+}
+
+.dash-greeting__title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--dash-text-primary);
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+
+.dash-greeting__subtitle {
+  font-size: 14px;
+  color: var(--dash-text-muted);
+  font-weight: 400;
+}
+
+/* ---- Section spacing ---- */
+
+.dash-section {
+  margin-bottom: 24px;
+}
+
+.dash-section--lg {
+  margin-bottom: 32px;
+}
+
+/* ---- Animate in utility ---- */
+
+.dash-fade-in {
+  animation: dashFadeIn 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes dashFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dash-fade-in-delay-1 {
+  animation-delay: 0.05s;
+}
+
+.dash-fade-in-delay-2 {
+  animation-delay: 0.1s;
+}
+
+.dash-fade-in-delay-3 {
+  animation-delay: 0.15s;
+}
+
+.dash-fade-in-delay-4 {
+  animation-delay: 0.2s;
+}
+
+.dash-fade-in-delay-5 {
+  animation-delay: 0.3s;
 }

@@ -1,47 +1,19 @@
-// app/dashboard/page.tsx
+// app/(pages)/dashboard/page.tsx
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useCallback } from 'react';
-import Navigation from '@/components/Navigation';
-import { StatsCard, CreditsCard, PlanCard, UsageTrendsChart } from '@/components/dashboard';
-import { AccountType, BillingCycle, UserDetails } from '@/lib/types';
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import {
+  DashboardNav,
+  HeroPlanCard,
+  MeetingCreditsCard,
+  CreditsBalanceCard,
+  ImageRequestsCard,
+  UsageTrends,
+} from '@/components/dashboard';
+import { AccountType, UserDetails } from '@/lib/types';
 import { STORAGE_KEYS } from '@/lib/storage';
-
-// Icons
-const ClockIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={1.5}
-      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-    />
-  </svg>
-);
-
-const ImageIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={1.5}
-      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-    />
-  </svg>
-);
-
-const CreditIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={1.5}
-      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-    />
-  </svg>
-);
 
 // Plan limits configuration
 const PLAN_LIMITS: Record<AccountType, { audioMinutes: number; imageRequests: number }> = {
@@ -53,14 +25,14 @@ const PLAN_LIMITS: Record<AccountType, { audioMinutes: number; imageRequests: nu
 
 // Helper function to format relative time
 const formatRelativeTime = (date: Date | string | null | undefined): string => {
-  if (!date) return 'N/A';
+  if (!date) return '';
 
   const now = new Date();
   const pastDate = new Date(date);
   const diffInMs = now.getTime() - pastDate.getTime();
   const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
 
-  if (diffInDays === 0) return 'Today';
+  if (diffInDays === 0) return 'today';
   if (diffInDays === 1) return '1 day ago';
   if (diffInDays < 7) return `${diffInDays} days ago`;
   if (diffInDays < 14) return '1 week ago';
@@ -69,8 +41,47 @@ const formatRelativeTime = (date: Date | string | null | undefined): string => {
   return `${Math.floor(diffInDays / 30)} months ago`;
 };
 
+// Time-aware greeting
+const getGreeting = (): string => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+};
+
+// --- Loading skeleton ---
+function DashboardSkeleton() {
+  return (
+    <div className="dash-page">
+      <div className="sticky top-0 z-40 w-full border-b border-[var(--dash-border)] bg-[var(--dash-surface)]/80 backdrop-blur-xl h-[60px]" />
+      <div className="dash-container">
+        {/* Greeting skeleton */}
+        <div className="dash-greeting">
+          <div className="dash-skeleton h-7 w-64 mb-2" />
+          <div className="dash-skeleton h-4 w-44" />
+        </div>
+
+        {/* Hero skeleton */}
+        <div className="dash-section--lg">
+          <div className="dash-skeleton h-44 w-full rounded-2xl" />
+        </div>
+
+        {/* Metrics skeleton */}
+        <div className="dash-grid-metrics dash-section--lg">
+          <div className="dash-skeleton h-40 rounded-xl" />
+          <div className="dash-skeleton h-40 rounded-xl" />
+          <div className="dash-skeleton h-40 rounded-xl" />
+        </div>
+
+        {/* Chart skeleton */}
+        <div className="dash-skeleton h-80 rounded-xl" />
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, logout, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(true);
@@ -95,6 +106,11 @@ export default function DashboardPage() {
         },
       });
 
+      if (response.status === 401) {
+        logout();
+        return;
+      }
+
       const data = await response.json();
 
       if (data.success && data.data) {
@@ -108,7 +124,7 @@ export default function DashboardPage() {
     } finally {
       setDetailsLoading(false);
     }
-  }, []);
+  }, [logout]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -122,92 +138,108 @@ export default function DashboardPage() {
     }
   }, [user, fetchUserDetails]);
 
+  // Show premium skeleton while loading
   if (authLoading || detailsLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-base text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-base text-gray-600">Redirecting to login...</p>
+      <div className="dash-page flex items-center justify-center">
+        <p className="text-[14px] text-[var(--dash-text-muted)]">Redirecting to login...</p>
       </div>
     );
   }
 
-  // Default values when data is not available
+  // Derive values
   const plan = userDetails?.plan || AccountType.FREE;
-  const credits = userDetails?.creditsUsed;
-  const creditsRemaining = userDetails?.creditsRemaining;
-  const audioCredits = userDetails?.audioCredits;
-  const TotalImageCredits = PLAN_LIMITS[plan].imageRequests;
-  const ImageCredits = TotalImageCredits - (userDetails?.imageCredits || 0);
-  const period = userDetails?.period;
+
+  // Meeting Credits
+  const creditsUsed = Number(userDetails?.creditsUsed) || 0;
+  const creditsRemaining = Number(userDetails?.creditsRemaining) || 0;
+
+  // Limits help
+  const audioMinutesLimit = PLAN_LIMITS[plan].audioMinutes;
+
+  // Image Requests
+  const totalImageCredits = PLAN_LIMITS[plan].imageRequests;
+  const imageCreditsUsed = Number(userDetails?.imageCredits) || 0;
+
   const planStart = userDetails?.planStartedAt;
-  const planEnd = userDetails?.planExpiresAt;
+  const displayName = user.email?.split('@')[0] || 'there';
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navigation />
-      <div className="py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-600 mt-2">Welcome back, {user.email}!</p>
-          </div>
+    <div className="dash-page">
+      <DashboardNav />
 
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-700 text-sm">{error}</p>
+      <div className="dash-container">
+        {/* Greeting */}
+        <div className="dash-greeting dash-fade-in">
+          <h1 className="dash-greeting__title">
+            {getGreeting()}, {displayName}
+          </h1>
+          <p className="dash-greeting__subtitle">
+            Here&apos;s how your AI assistant is performing.
+          </p>
+        </div>
+
+        {/* Error state */}
+        {error && (
+          <div className="dash-section dash-fade-in">
+            <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[var(--dash-state-critical)]/20 bg-[var(--dash-state-critical)]/5">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--dash-state-critical)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <p className="text-[13px] text-[var(--dash-state-critical)] flex-1">{error}</p>
               <button
                 onClick={fetchUserDetails}
-                className="mt-2 text-red-600 hover:text-red-700 text-sm font-medium underline"
+                className="text-[13px] font-medium text-[var(--dash-state-critical)] hover:underline"
               >
-                Try again
+                Retry
               </button>
             </div>
-          )}
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <StatsCard
-              title="Meeting Credits"
-              icon={<ClockIcon />}
-              value={Number(credits)}
-              total={Number(credits) + Number(creditsRemaining)}
-              subtitle={'Total Credits'}
-              progressColor="bg-blue-500"
-              showProgress={false}
-            />
-
-            <StatsCard
-              title="Image Requests"
-              icon={<ImageIcon />}
-              value={ImageCredits || 0}
-              total={TotalImageCredits}
-              subtitle={`${TotalImageCredits - Number(ImageCredits)} requests remaining`}
-              progressColor="bg-orange-400"
-              showProgress={false}
-            />
-
-            <CreditsCard
-              title="Credits Balance"
-              icon={<CreditIcon />}
-              credits={Number(creditsRemaining)}
-              lastTopUp={formatRelativeTime(planStart)}
-            />
-
-            <PlanCard plan={plan} renewsAt={userDetails?.planExpiresAt || null} isActive={true} />
           </div>
+        )}
 
-          {/* Usage Trends Chart */}
-          <UsageTrendsChart />
+        {/* 1. Hero Plan Card (Primary) */}
+        <div className="dash-section--lg dash-fade-in dash-fade-in-delay-1">
+          <HeroPlanCard
+            plan={plan}
+            creditsUsed={creditsUsed}
+            creditsRemaining={creditsRemaining}
+            audioMinutesLimit={audioMinutesLimit}
+            renewsAt={userDetails?.planExpiresAt || null}
+            isActive={true}
+          />
+        </div>
+
+        {/* 2. Metric Cards Grid */}
+        <div className="dash-grid-metrics dash-section--lg">
+          <div className="dash-fade-in dash-fade-in-delay-2">
+            <MeetingCreditsCard
+              creditsUsed={creditsUsed}
+              creditsRemaining={creditsRemaining}
+            />
+          </div>
+          <div className="dash-fade-in dash-fade-in-delay-3">
+            <CreditsBalanceCard
+              credits={creditsRemaining}
+              lastAdded={formatRelativeTime(planStart) || undefined}
+            />
+          </div>
+          <div className="dash-fade-in dash-fade-in-delay-4">
+            <ImageRequestsCard
+              used={imageCreditsUsed}
+              total={totalImageCredits}
+            />
+          </div>
+        </div>
+
+        {/* 3. Usage Trends (Contextual Insight) */}
+        <div className="dash-fade-in dash-fade-in-delay-5">
+          <UsageTrends />
         </div>
       </div>
     </div>

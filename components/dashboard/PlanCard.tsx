@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useState } from 'react';
 import { AccountType } from '@/lib/types';
 import { Button } from '../ui/button';
