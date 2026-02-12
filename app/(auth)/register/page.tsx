@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -14,7 +15,7 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isDesktopSource, setIsDesktopSource] = useState(false);
-
+  const [coupon, setCoupon] = useState<boolean>(false);
   // Check if user came from desktop app
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -157,18 +158,31 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label htmlFor="coupon" className="block text-sm font-medium text-gray-700 mb-1">
-              Coupon Code (Optional)
-            </label>
-            <input
-              id="coupon"
-              name="coupon"
-              type="text"
-              value={formData.coupon}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter coupon code"
-            />
+            <div className="flex justify-between">
+              <label htmlFor="coupon" className="block text-sm font-medium text-gray-700 mb-1">
+                Coupon Code (Optional)
+              </label>
+              <Switch
+                id="coupon-toggle"
+                checked={coupon}
+                onCheckedChange={(val) => {
+                  setCoupon(Boolean(val));
+                  if (!val) setFormData((prev) => ({ ...prev, coupon: '' }));
+                }}
+              />
+            </div>
+
+            {coupon && (
+              <input
+                id="coupon"
+                name="coupon"
+                type="text"
+                value={formData.coupon}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter coupon code"
+              />
+            )}
           </div>
 
           <Button type="submit" className="w-full" disabled={isLoading}>
