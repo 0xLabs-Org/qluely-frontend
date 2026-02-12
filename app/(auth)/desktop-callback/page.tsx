@@ -45,7 +45,7 @@ function DesktopCallbackContent() {
 
         const data = await response.json();
 
-        if (!data.success || !data.data.oneTimeToken) {
+        if (!data.success || !data.data?.oneTimeToken) {
           throw new Error('Invalid response from server');
         }
 
