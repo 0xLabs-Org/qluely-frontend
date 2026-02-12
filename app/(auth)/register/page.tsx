@@ -60,10 +60,17 @@ export default function RegisterPage() {
 
         console.log('Received token:', token.substring(0, 30) + '...');
 
-        // If user came from desktop app, redirect to desktop callback
+        // If user came from desktop app, store token out-of-band and navigate
+        // without exposing the token in the URL/history. The desktop callback
+        // will read and remove the token from sessionStorage.
         if (isDesktopSource) {
+          try {
+            sessionStorage.setItem('desktop_auth_token', token);
+          } catch (e) {
+            console.warn('Failed to write desktop token to sessionStorage', e);
+          }
           console.log('Desktop source detected, redirecting to callback...');
-          router.push(`/desktop-callback?token=${encodeURIComponent(token)}`);
+          router.replace('/desktop-callback');
           return;
         }
 
@@ -77,14 +84,16 @@ export default function RegisterPage() {
           const payload = JSON.parse(atob(tokenParts[1]));
           console.log('JWT payload:', payload);
 
-          // Extract user data from API response (not from token)
-          // The backend returns user info in data.data.user
+          // Extract user data from API response (not from token).
+          // Normalize API envelopes: prefer `data.data.userId` or `data.data.user.id`,
+          // then the decoded token `payload.id`, falling back to a safe default.
           const userData = {
-            id: data.data?.user?.id || payload.id || 'unknown',
+            id: data.data?.userId || data.data?.user?.id || payload.id || 'unknown',
             email: formData.email, // Use the email from the registration form since it's not in token
             accountType: payload.plan || payload.accountType || 'FREE',
-            isOnboarded: data.data?.user?.isOnboarded || false,
-            onboardingSkipped: data.data?.user?.onboardingSkipped || false,
+            isOnboarded: (data.data?.isOnboarded ?? data.data?.user?.isOnboarded) || false,
+            onboardingSkipped:
+              (data.data?.onboardingSkipped ?? data.data?.user?.onboardingSkipped) || false,
           };
 
           console.log('Extracted user data:', userData);

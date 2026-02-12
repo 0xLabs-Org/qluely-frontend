@@ -13,8 +13,18 @@ function DesktopCallbackContent() {
   useEffect(() => {
     const handleDesktopRedirect = async () => {
       try {
-        // Get the JWT token from URL params
-        const token = searchParams.get('token');
+        // Get the JWT token from URL params or from sessionStorage (out-of-band)
+        // If the token was passed via sessionStorage by the web flow, consume
+        // and remove it immediately to avoid leaving secrets behind.
+        let token = searchParams.get('token');
+        if (!token) {
+          try {
+            token = sessionStorage.getItem('desktop_auth_token') || '';
+            if (token) sessionStorage.removeItem('desktop_auth_token');
+          } catch (e) {
+            console.warn('Could not access sessionStorage for desktop token', e);
+          }
+        }
 
         if (!token) {
           throw new Error('No authentication token provided');
