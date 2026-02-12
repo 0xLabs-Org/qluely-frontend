@@ -11,10 +11,7 @@ interface UsageTrendsProps {
 export function UsageTrends({ data }: UsageTrendsProps) {
   const [selectedPeriod, setSelectedPeriod] = useState<Period>('Weekly');
 
-  const chartData = useMemo(
-    () => data ?? [35, 50, 45, 60, 55, 75, 55, 85, 90, 100, 55, 60, 65, 80, 65, 95, 70],
-    [data],
-  );
+  const chartData = useMemo(() => data ?? [], [data]);
   const maxValue = Math.max(...chartData);
 
   // Calculate insight based on selectedPeriod and stable chartData
@@ -81,6 +78,22 @@ export function UsageTrends({ data }: UsageTrendsProps) {
 
   const labels = getLabels();
   const showLabelEvery = Math.max(1, Math.ceil(chartData.length / 5));
+  if (chartData.length == 0)
+    return (
+      <div className="dash-card">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+          <div>
+            <span className="dash-card__label mb-1.5 block">Usage Trends</span>
+            <h3 className="text-[17px] font-semibold text-[var(--dash-text-primary)] tracking-[-0.01em]">
+              Meeting usage over time
+            </h3>
+          </div>
+        </div>
+
+        <div className="h-20 w-full flex justify-center items-center">No Data Available</div>
+      </div>
+    );
 
   return (
     <div className="dash-card">
@@ -89,7 +102,7 @@ export function UsageTrends({ data }: UsageTrendsProps) {
         <div>
           <span className="dash-card__label mb-1.5 block">Usage Trends</span>
           <h3 className="text-[17px] font-semibold text-[var(--dash-text-primary)] tracking-[-0.01em]">
-            Meeting minutes over time
+            Meeting usage over time
           </h3>
         </div>
 
@@ -146,7 +159,7 @@ export function UsageTrends({ data }: UsageTrendsProps) {
               >
                 {/* Tooltip */}
                 <div className="opacity-0 group-hover/bar:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-[var(--dash-text-primary)] text-white text-[10px] font-medium rounded-md whitespace-nowrap transition-opacity duration-150 pointer-events-none z-10">
-                  {value} min
+                  {value} requests
                 </div>
                 <div
                   className={`w-full max-w-[32px] rounded-t-[4px] transition-all duration-500 ease-out cursor-pointer ${
