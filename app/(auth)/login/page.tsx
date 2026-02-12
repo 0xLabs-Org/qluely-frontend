@@ -67,10 +67,11 @@ export default function LoginPage() {
           const payload = JSON.parse(atob(tokenParts[1]));
           console.log('JWT payload:', payload);
 
-          // Extract user data from API response (not from token)
-          // The backend returns isOnboarded and onboardingSkipped in data.data
+          // Extract user data from API response (not from token).
+          // Normalize API envelopes: prefer `data.data.user.id`, then `data.data.userId`,
+          // then the decoded token `payload.id`, falling back to a safe default.
           const userData = {
-            id: data.data?.userId || payload.id || 'unknown',
+            id: data.data?.user?.id || data.data?.userId || payload.id || 'unknown',
             email: formData.email, // Use the email from the login form since it's not in token
             accountType: payload.plan || payload.accountType || 'FREE',
             isOnboarded: data.data?.isOnboarded || false,
