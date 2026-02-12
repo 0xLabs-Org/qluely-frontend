@@ -82,27 +82,6 @@ export async function POST(request: NextRequest) {
       headers['content-type'] = 'application/json';
     }
 
-    // Log the authorization header status
-    const hasAuthHeader = !!headers['authorization'];
-    console.log(
-      'Order proxy: Authorization header status:',
-      hasAuthHeader ? `present (${headers['authorization']?.substring(0, 50)}...)` : 'MISSING!',
-    );
-
-    if (!hasAuthHeader) {
-      console.log('Order proxy: ERROR - No Authorization header in request!');
-      console.log('Order proxy: Request headers received:', Object.keys(headers));
-    }
-
-    console.log('Order proxy: Making request to backend:', `${backendUrl}/api/v1/payment/order`);
-    console.log('Order proxy: Headers being forwarded:', {
-      'content-type': headers['content-type'],
-      'authorization-present': !!headers['authorization'],
-      'other-headers': Object.keys(headers).filter(
-        (k) => k !== 'content-type' && k !== 'authorization',
-      ),
-    });
-
     // Make the proxy request to the backend
     const response = await fetch(`${backendUrl}/api/v1/payment/order`, {
       method: 'POST',
@@ -110,17 +89,8 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify(body),
     });
 
-    console.log('Order proxy: Backend response status:', response.status);
-    console.log('Order proxy: Backend response headers:', {
-      contentType: response.headers.get('content-type'),
-    });
-
     // Get response data
     const responseData = await response.json();
-    console.log(
-      'Order proxy: Backend response data:',
-      JSON.stringify(responseData).substring(0, 200),
-    );
 
     // Return the backend response with consistent format
     if (response.ok) {

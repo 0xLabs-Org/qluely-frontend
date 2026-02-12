@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { generateToken } from '@/helper/auth';
 import { AccountType, STATUS } from '@/lib/types';
-import { publishEvent } from '@/lib/message/publish';
 
 export async function POST(request: NextRequest) {
   try {
@@ -54,15 +53,7 @@ export async function POST(request: NextRequest) {
 
     console.log('[LOGIN] Password verified successfully');
     const token = generateToken(user.id, (user.account?.plan as string) || AccountType.FREE);
-    try {
-      await publishEvent('email.send', {
-        to: email,
-        type: 'LOGIN',
-        ideompotencyKey: crypto.randomUUID(),
-      });
-    } catch {
-      console.log('Failed to updated user event');
-    }
+
     return NextResponse.json(
       {
         success: true,
