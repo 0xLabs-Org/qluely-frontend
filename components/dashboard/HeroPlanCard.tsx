@@ -61,6 +61,7 @@ export function HeroPlanCard({
   const [open, setOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<AccountType | null>(null);
   const [currency, setCurrency] = useState<'USD' | 'INR'>('USD');
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   // Compute health state
   const healthState = useMemo(() => {
@@ -109,16 +110,16 @@ export function HeroPlanCard({
   const handlePayment = async () => {
     if (!selectedPlan) return;
     try {
-      await pay(
-        currency,
-        selectedPlan as 'BASIC' | 'PRO' | 'UNLIMITED',
-        'MONTH',
-        { upgradeFrom: plan, creditsUsed },
-        () => window.location.reload(),
-      );
+      setPaymentError(null);
+      await pay(currency, selectedPlan as 'BASIC' | 'PRO' | 'UNLIMITED', 'MONTH', {
+        upgradeFrom: plan,
+        creditsUsed,
+      });
       setOpen(false);
+      window.location.reload();
     } catch (error) {
       console.error('Payment failed', error);
+      setPaymentError(error instanceof Error ? error.message : String(error));
     }
   };
 
