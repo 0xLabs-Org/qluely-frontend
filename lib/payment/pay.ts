@@ -8,6 +8,7 @@ export async function pay(
   period: 'MONTH' | 'YEAR' = 'MONTH',
   extras?: Record<string, any>,
   onSuccess?: () => void,
+  onError?: (err: Error) => void,
 ) {
   try {
     // Check if user is authenticated
@@ -137,7 +138,13 @@ export async function pay(
       modal: {
         ondismiss: function () {
           console.log('Payment modal was closed by user');
-          if (!onSuccess) {
+          if (onError) {
+            try {
+              onError(new Error('payment_modal_dismissed'));
+            } catch (e) {
+              console.error('onError callback threw', e);
+            }
+          } else if (!onSuccess) {
             window.location.href = `/payment?verification=false`;
           }
         },
@@ -152,11 +159,15 @@ export async function pay(
     const rzp = new Razorpay(options);
     rzp.open();
   } catch (error) {
-    if (!onSuccess) {
-      window.location.href = `/payment?verification=false`;
+    if (onError) {
+      try {
+        onError(error instanceof Error ? error : new Error(String(error)));
+      } catch (e) {
+        console.error('onError callback threw', e);
+      }
     } else {
-      console.error('Payment flow error:', error);
-      // Optional: allow UI to handle error
+      // No onError provided — surface the error to callers by re-throwing
+      throw error;
     }
   }
 }
