@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -165,6 +165,28 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
+
+  /* Dashboard - Core palette */
+  --dash-bg: #f8f9fb;
+  --dash-surface: #ffffff;
+  --dash-elevated: #f3f4f7;
+  --dash-border: #e8eaef;
+  --dash-hover: #f5f6f8;
+
+  /* Dashboard - Text hierarchy */
+  --dash-text-primary: #0f1729;
+  --dash-text-secondary: #4b5468;
+  --dash-text-muted: #8b93a7;
+
+  /* Dashboard - Accent (Deep authoritative blue) */
+  --dash-accent: #3b7dd8;
+  --dash-accent-deep: #2b5ea6;
+  --dash-accent-light: rgba(59, 125, 216, 0.08);
+
+  /* Dashboard - State colors (communicates state, not decoration) */
+  --dash-state-healthy: #3b7dd8;
+  --dash-state-warning: #d4a054;
+  --dash-state-critical: #dc6b6b;
 }
 
 .dark {
@@ -248,7 +270,9 @@ html {
 .dash-page {
   min-height: 100vh;
   background-color: var(--dash-bg);
-  font-feature-settings: 'cv11' 1, 'ss01' 1;
+  font-feature-settings:
+    'cv11' 1,
+    'ss01' 1;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -278,7 +302,9 @@ html {
   border: 1px solid var(--dash-border);
   border-radius: 14px;
   padding: 24px;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
   display: flex;
   flex-direction: column;
 }
@@ -343,12 +369,12 @@ html {
   }
 }
 
-.dash-grid-metrics>* {
+.dash-grid-metrics > * {
   display: flex;
   flex-direction: column;
 }
 
-.dash-grid-metrics>*>.dash-card {
+.dash-grid-metrics > * > .dash-card {
   flex: 1;
 }
 
@@ -365,10 +391,12 @@ html {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.5) 50%,
-      transparent 100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    transparent 100%
+  );
   animation: dash-shimmer 1.8s ease-in-out infinite;
 }
 
