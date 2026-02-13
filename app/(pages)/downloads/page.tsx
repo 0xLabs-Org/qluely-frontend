@@ -20,6 +20,7 @@ export interface DownloadItem {
   | "opera";
   href: string;
   icon: React.ReactNode;
+  comingSoon?: boolean;
 }
 
 export interface DownloadCategory {
@@ -50,6 +51,7 @@ const categories: DownloadCategory = {
           <path d="M0 0v11.408h11.408V0H0zm12.592 0v11.408H24V0h-11.408zM0 12.592V24h11.408V12.592H0zm12.592 0V24H24V12.592h-11.408z" />
         </svg>
       ),
+      comingSoon: true,
     },
     {
       id: "mac",
@@ -58,6 +60,7 @@ const categories: DownloadCategory = {
       storeIconType: "apple",
       href: "#",
       icon: <Apple className="w-6 h-6 text-gray-900" />,
+      comingSoon: true,
     },
     {
       id: "linux",
@@ -72,6 +75,7 @@ const categories: DownloadCategory = {
           alt="Linux"
         />
       ),
+      comingSoon: true,
     },
   ],
 };
