@@ -4,9 +4,10 @@ import { Globe, Apple, Play, ShoppingBag, Cpu } from "lucide-react";
 interface StoreBadgeProps {
   type: "microsoft" | "apple" | "snap" | "playstore" | "galaxy" | "firefox" | "chrome" | "opera";
   storeName: string;
+  comingSoon?: boolean;
 }
 
-export const StoreBadge: React.FC<StoreBadgeProps> = ({ type, storeName }) => {
+export const StoreBadge: React.FC<StoreBadgeProps> = ({ type, storeName, comingSoon }) => {
   const getIcon = () => {
     switch (type) {
       case "microsoft":
@@ -39,6 +40,7 @@ export const StoreBadge: React.FC<StoreBadgeProps> = ({ type, storeName }) => {
   };
 
   const getLabel = () => {
+    if (comingSoon) return "COMING SOON";
     if (type === "chrome" || type === "firefox" || type === "opera") return "GET THE";
     return "Get it from";
   };
@@ -48,7 +50,7 @@ export const StoreBadge: React.FC<StoreBadgeProps> = ({ type, storeName }) => {
       <div className="mr-2">{getIcon()}</div>
       <div className="flex flex-col items-start leading-none">
         <span className="text-[9px] font-medium uppercase opacity-80">{getLabel()}</span>
-        <span className="text-xs font-bold whitespace-nowrap">{storeName}</span>
+        {!comingSoon && <span className="text-xs font-bold whitespace-nowrap">{storeName}</span>}
       </div>
     </div>
   );

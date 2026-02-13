@@ -39,8 +39,11 @@ interface DownloadButtonProps {
 export const DownloadButton = ({ item }: DownloadButtonProps) => {
   return (
     <a
-      href={item.href}
-      className="group/btn flex items-center justify-between p-4 bg-white/60 border border-slate-200/60 rounded-2xl hover:border-purple-300/50 hover:bg-white hover:scale-[1.02] hover:-translate-y-0.5 transition-all duration-300 shadow-sm hover:shadow-xl hover:shadow-purple-900/10 cursor-pointer"
+      href={item.comingSoon ? undefined : item.href}
+      className={`group/btn flex items-center justify-between p-4 bg-white/60 border border-slate-200/60 rounded-2xl transition-all duration-300 shadow-sm ${item.comingSoon
+          ? "cursor-not-allowed opacity-70 grayscale"
+          : "hover:border-purple-300/50 hover:bg-white hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-xl hover:shadow-purple-900/10 cursor-pointer"
+        }`}
     >
       <div className="flex items-center gap-5">
         <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-slate-50 group-hover/btn:bg-gradient-to-br from-blue-50 to-purple-50 transition-all duration-300 text-slate-600 group-hover/btn:text-blue-600">
@@ -51,7 +54,7 @@ export const DownloadButton = ({ item }: DownloadButtonProps) => {
         </span>
       </div>
       <div className="transform transition-transform duration-300 group-hover/btn:scale-110 group-hover/btn:rotate-1">
-        <StoreBadge type={item.storeIconType} storeName={item.storeName} />
+        <StoreBadge type={item.storeIconType} storeName={item.storeName} comingSoon={item.comingSoon} />
       </div>
     </a>
   );
