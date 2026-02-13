@@ -63,7 +63,7 @@ export function FAQ({ className }: FaqType) {
               A meeting credit represents one meeting session.
             </p>
             <p className="text-sm sm:text-base lg:text-lg wrap-break-words hyphens-auto leading-relaxed">
-              1 credit = 1 hour session
+              1 credit = 1 request
             </p>
           </AccordionContent>
         </AccordionItem>
