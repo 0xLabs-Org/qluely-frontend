@@ -8,7 +8,7 @@ import {
   DashboardNav,
   HeroPlanCard,
   MeetingCreditsCard,
-  CreditsBalanceCard,
+  AudioUsageCard,
   ImageRequestsCard,
   UsageTrends,
 } from '@/components/dashboard';
@@ -166,6 +166,7 @@ export default function DashboardPage() {
   const imageCreditsUsed = Number(userDetails?.imageCredits) || 0;
 
   const planStart = userDetails?.planStartedAt;
+  const audioCreditsUsed = Number(userDetails?.audioCredits) || 0;
   const displayName = user.email?.split('@')[0] || 'there';
 
   return (
@@ -221,9 +222,9 @@ export default function DashboardPage() {
           />
         </div>
         <div className="dash-fade-in dash-fade-in-delay-3">
-          <CreditsBalanceCard
-            credits={creditsRemaining}
-            lastAdded={formatRelativeTime(planStart) || undefined}
+          <AudioUsageCard
+            used={audioCreditsUsed}
+            total={audioMinutesLimit}
           />
         </div>
         <div className="dash-fade-in dash-fade-in-delay-4">
