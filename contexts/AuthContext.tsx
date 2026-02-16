@@ -8,6 +8,7 @@ interface User {
   email: string;
   accountType?: string;
   isOnboarded?: boolean;
+  onboardingSkipped?: boolean;
 }
 
 interface AuthContextType {

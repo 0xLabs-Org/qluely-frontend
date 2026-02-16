@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,6 +13,13 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isDesktopSource, setIsDesktopSource] = useState(false);
+
+  // Check if user came from desktop app
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setIsDesktopSource(params.get('source') === 'desktop');
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +50,14 @@ export default function LoginPage() {
 
         console.log('Received token:', token.substring(0, 30) + '...');
 
-        // Decode JWT token to extract user information
+        // If user came from desktop app, redirect to desktop callback
+        if (isDesktopSource) {
+          console.log('Desktop source detected, redirecting to callback...');
+          router.push(`/desktop-callback?token=${encodeURIComponent(token)}`);
+          return;
+        }
+
+        // Normal web flow - decode JWT token to extract user information
         try {
           const tokenParts = token.split('.');
           if (tokenParts.length !== 3) {
@@ -53,12 +67,15 @@ export default function LoginPage() {
           const payload = JSON.parse(atob(tokenParts[1]));
           console.log('JWT payload:', payload);
 
-          // Extract user data from token
+          // Extract user data from API response (not from token).
+          // Normalize API envelopes: prefer `data.data.user.id`, then `data.data.userId`,
+          // then the decoded token `payload.id`, falling back to a safe default.
           const userData = {
-            id: payload.userId || payload.id || 'unknown',
+            id: data.data?.user?.id || data.data?.userId || payload.id || 'unknown',
             email: formData.email, // Use the email from the login form since it's not in token
             accountType: payload.plan || payload.accountType || 'FREE',
-            isOnboarded: payload.isOnboarded || false,
+            isOnboarded: data.data?.isOnboarded || false,
+            onboardingSkipped: data.data?.onboardingSkipped || false,
           };
 
           console.log('Extracted user data:', userData);
