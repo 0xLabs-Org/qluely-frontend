@@ -169,78 +169,74 @@ export default function DashboardPage() {
   const displayName = user.email?.split('@')[0] || 'there';
 
   return (
-    <div className="dash-page">
-      <DashboardNav />
+    <div className="dash-fade-in">
+      {/* Greeting */}
+      <div className="dash-greeting">
+        <h1 className="dash-greeting__title">
+          {getGreeting()}, {displayName}
+        </h1>
+        <p className="dash-greeting__subtitle">
+          Here&apos;s how your AI assistant is performing.
+        </p>
+      </div>
 
-      <div className="dash-container">
-        {/* Greeting */}
-        <div className="dash-greeting dash-fade-in">
-          <h1 className="dash-greeting__title">
-            {getGreeting()}, {displayName}
-          </h1>
-          <p className="dash-greeting__subtitle">
-            Here&apos;s how your AI assistant is performing.
-          </p>
-        </div>
-
-        {/* Error state */}
-        {error && (
-          <div className="dash-section dash-fade-in">
-            <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[var(--dash-state-critical)]/20 bg-[var(--dash-state-critical)]/5">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--dash-state-critical)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-              <p className="text-[13px] text-[var(--dash-state-critical)] flex-1">{error}</p>
-              <button
-                onClick={fetchUserDetails}
-                className="text-[13px] font-medium text-[var(--dash-state-critical)] hover:underline"
-              >
-                Retry
-              </button>
-            </div>
+      {/* Error state */}
+      {error && (
+        <div className="dash-section dash-fade-in">
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[var(--dash-state-critical)]/20 bg-[var(--dash-state-critical)]/5">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--dash-state-critical)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <p className="text-[13px] text-[var(--dash-state-critical)] flex-1">{error}</p>
+            <button
+              onClick={fetchUserDetails}
+              className="text-[13px] font-medium text-[var(--dash-state-critical)] hover:underline"
+            >
+              Retry
+            </button>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* 1. Hero Plan Card (Primary) */}
-        <div className="dash-section--lg dash-fade-in dash-fade-in-delay-1">
-          <HeroPlanCard
-            plan={plan}
+      {/* 1. Hero Plan Card (Primary) */}
+      <div className="dash-section--lg dash-fade-in dash-fade-in-delay-1">
+        <HeroPlanCard
+          plan={plan}
+          creditsUsed={creditsUsed}
+          creditsRemaining={creditsRemaining}
+          audioMinutesLimit={audioMinutesLimit}
+          renewsAt={userDetails?.planExpiresAt || null}
+          isActive={true}
+        />
+      </div>
+
+      {/* 2. Metric Cards Grid */}
+      <div className="dash-grid-metrics dash-section--lg">
+        <div className="dash-fade-in dash-fade-in-delay-2">
+          <MeetingCreditsCard
             creditsUsed={creditsUsed}
             creditsRemaining={creditsRemaining}
-            audioMinutesLimit={audioMinutesLimit}
-            renewsAt={userDetails?.planExpiresAt || null}
-            isActive={true}
           />
         </div>
-
-        {/* 2. Metric Cards Grid */}
-        <div className="dash-grid-metrics dash-section--lg">
-          <div className="dash-fade-in dash-fade-in-delay-2">
-            <MeetingCreditsCard
-              creditsUsed={creditsUsed}
-              creditsRemaining={creditsRemaining}
-            />
-          </div>
-          <div className="dash-fade-in dash-fade-in-delay-3">
-            <CreditsBalanceCard
-              credits={creditsRemaining}
-              lastAdded={formatRelativeTime(planStart) || undefined}
-            />
-          </div>
-          <div className="dash-fade-in dash-fade-in-delay-4">
-            <ImageRequestsCard
-              used={imageCreditsUsed}
-              total={totalImageCredits}
-            />
-          </div>
+        <div className="dash-fade-in dash-fade-in-delay-3">
+          <CreditsBalanceCard
+            credits={creditsRemaining}
+            lastAdded={formatRelativeTime(planStart) || undefined}
+          />
         </div>
-
-        {/* 3. Usage Trends (Contextual Insight) */}
-        <div className="dash-fade-in dash-fade-in-delay-5">
-          <UsageTrends />
+        <div className="dash-fade-in dash-fade-in-delay-4">
+          <ImageRequestsCard
+            used={imageCreditsUsed}
+            total={totalImageCredits}
+          />
         </div>
+      </div>
+
+      {/* 3. Usage Trends (Contextual Insight) */}
+      <div className="dash-fade-in dash-fade-in-delay-5">
+        <UsageTrends />
       </div>
     </div>
   );
