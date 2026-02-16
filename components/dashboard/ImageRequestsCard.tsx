@@ -49,7 +49,7 @@ export function ImageRequestsCard({ used, total }: ImageRequestsCardProps) {
       </div>
 
       {/* Context */}
-      <p className="dash-card__context">{remaining.toLocaleString()} requests remaining</p>
+      <p className="dash-card__context">{remaining.toLocaleString()} requests used</p>
     </div>
   );
 }

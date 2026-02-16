@@ -7,6 +7,6 @@ export { UsageTrendsChart } from './UsageTrendsChart';
 export { DashboardNav } from './DashboardNav';
 export { HeroPlanCard } from './HeroPlanCard';
 export { MeetingCreditsCard } from './MeetingCreditsCard';
-export { CreditsBalanceCard } from './CreditsBalanceCard';
+export { AudioUsageCard } from './AudioUsageCard';
 export { ImageRequestsCard } from './ImageRequestsCard';
 export { UsageTrends } from './UsageTrends';
