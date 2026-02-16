@@ -53,7 +53,55 @@ export async function POST(request: NextRequest) {
 
     console.log('[LOGIN] Password verified successfully');
     const token = generateToken(user.id, (user.account?.plan as string) || AccountType.FREE);
+    // publish event to server (no auth required)
+    try {
+      console.log('[LOGIN] AUTH EVENT STARTED');
+      let backendUrl = process.env.BACKEND_API_URL;
+      if (!backendUrl) {
+        console.warn('[LOGIN] BACKEND_API_URL not configured; skipping event publish');
+      } else {
+        // ensure URL has protocol
+        if (!/^https?:\/\//i.test(backendUrl)) {
+          backendUrl = `http://${backendUrl}`;
+        }
 
+        // fire-and-forget with timeout to avoid blocking the login flow
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+
+        fetch(`${backendUrl}/api/v1/web/event`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'LOGIN', email: user.email, id: user.id }),
+          signal: controller.signal,
+        })
+          .then(async (res) => {
+            clearTimeout(timeout);
+            if (!res.ok) {
+              const text = await res.text().catch(() => null);
+              console.error('[LOGIN] Event publish failed:', res.status, text);
+            } else {
+              console.log('[LOGIN] AUTH EVENT COMPLETED');
+            }
+          })
+          .catch((err) => {
+            clearTimeout(timeout);
+            if (err && err.name === 'AbortError') {
+              console.error('[LOGIN] Event publish aborted due to timeout');
+            } else {
+              console.error(
+                '[LOGIN] Error publishing event to backend:',
+                err instanceof Error ? err.message : String(err),
+              );
+            }
+          });
+      }
+    } catch (err) {
+      console.error(
+        '[LOGIN] Unexpected error in event publish block:',
+        err instanceof Error ? err.message : String(err),
+      );
+    }
     return NextResponse.json(
       {
         success: true,
