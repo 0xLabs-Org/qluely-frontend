@@ -4,7 +4,6 @@ import { registerSchema } from '@/lib/zod/schema';
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { generateToken } from '@/helper/auth';
-import { publishEvent } from '@/lib/message/publish';
 
 type RegisterRequest = {
   email: string;

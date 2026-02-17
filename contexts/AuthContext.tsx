@@ -13,6 +13,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
+  token: string | null;
   isLoading: boolean;
   login: (token: string, userData: User) => void;
   logout: () => void;
@@ -28,6 +29,7 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Check for stored auth token on mount
@@ -40,6 +42,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (token && userData) {
           const parsedUser = JSON.parse(userData);
           setUser(parsedUser);
+          setToken(token);
           console.log('User authenticated from localStorage:', parsedUser);
         } else if (token) {
           // If we have a token but no userData, clear the token
@@ -95,6 +98,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     localStorage.setItem(STORAGE_KEYS.TOKEN, token);
     localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
     setUser(userData);
+    setToken(token);
     console.log('AuthContext login completed, user state updated');
   };
 
@@ -102,6 +106,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     localStorage.removeItem(STORAGE_KEYS.TOKEN);
     localStorage.removeItem(STORAGE_KEYS.USER_DATA);
     setUser(null);
+    setToken(null);
   };
 
   const updateUser = (userData: User) => {
@@ -119,6 +124,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const value: AuthContextType = {
     user,
+    token,
     isLoading,
     login,
     logout,
