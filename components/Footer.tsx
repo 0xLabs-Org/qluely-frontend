@@ -24,6 +24,11 @@ export default function Footer() {
                 Twitter
               </a>
             </span>
+            <span className="text-black/60 hover:text-black/90 cursor-pointer">
+              <a href="/privacy">
+                Privacy Policy
+              </a>
+            </span>
           </div>
         </div>
         <span className="text-black/40 absolute bottom-5">
