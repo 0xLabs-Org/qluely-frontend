@@ -75,8 +75,8 @@ export default function Navigation({ className }: NavigationProps) {
             About
           </a>
 
-          <a href="/#faq" className="hover:text-black/70 cursor-pointer">
-            FAQ
+          <a href="/privacy" className="hover:text-black/70 cursor-pointer">
+            Privacy Policy
           </a>
         </div>
 
@@ -223,11 +223,11 @@ export default function Navigation({ className }: NavigationProps) {
             </a>
 
             <a
-              href="/#faq"
+              href="/privacy"
               className="hover:text-black/70 cursor-pointer"
               onClick={() => setOpen(false)}
             >
-              FAQ
+              Privacy Policy
             </a>
 
             {user && (
