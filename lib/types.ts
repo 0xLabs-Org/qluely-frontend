@@ -44,3 +44,25 @@ export const STATUS = {
   INTERNAL_SERVER_ERROR: 500,
   SERVICE_UNAVAILABLE: 503,
 } as const;
+
+export interface Meeting {
+  id: string;
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  _count?: {
+    Request: number;
+  };
+}
+
+export interface MeetingsResponse {
+  success: boolean;
+  error: boolean;
+  message: string;
+  data: {
+    meetings: Meeting[];
+    total: number;
+    page: number;
+    limit: number;
+  } | null;
+}
