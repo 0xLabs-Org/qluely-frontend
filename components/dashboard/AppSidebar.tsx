@@ -43,22 +43,22 @@ const items = [
     },
     {
         title: "Meetings",
-        url: "/meetings",
+        url: "/dashboard/meetings",
         icon: Video,
     },
     {
         title: "Upload",
-        url: "/upload",
+        url: "#",
         icon: Upload,
     },
     {
         title: "Metrics",
-        url: "/metrics",
+        url: "#",
         icon: BarChart3,
     },
     {
         title: "Settings",
-        url: "/settings",
+        url: "#",
         icon: Settings,
     },
 ];
