@@ -12,6 +12,7 @@ import { DotPattern } from '@/components/ui/dot-pattern';
 import { cn } from '@/lib/utils';
 import { FAQ } from '@/components/FAQ';
 import Footer from '@/components/Footer';
+import { WaitlistForm } from '@/components/waitlist';
 export const ApplicationURL: Record<'macOS' | 'Linux' | 'Windows', string> = {
   macOS: 'https://github.com/0xLabs-Org/Qluely/releases/download/v1.0.0/Qluely.1.0.2.exe',
   Linux: 'https://github.com/0xLabs-Org/Qluely/releases/download/v1.0.0/Qluely.1.0.2.exe',
@@ -97,27 +98,44 @@ export default function QluelyLanding() {
       {/* FAQ Section */}
       <FAQ className="min-h-svh" />
 
-      {/* CTA  */}
+      {/* Waitlist CTA Section */}
       <section
-        className="relative w-[80vw] h-40  md:h-70 md:w-7xl mx-auto bg-linear-to-bl from-[#575dff] to-[#a8abdb] rounded-xl  mb-20 flex  justify-center items-center gap-5 overflow-hidden"
-        id="cta"
+        className="relative w-full py-20 md:py-32 overflow-hidden"
+        id="waitlist"
       >
-        <DotPattern
-          width={20}
-          className={cn(
-            '[mask-image:radial-gradient(300px_circle_at_center,white,transparent)]',
-            'absolute top-0 left-0 z-0',
-          )}
-        />
-        <div className="flex flex-col gap-5 justify-center items-center relative z-10">
-          <span className="text-xl md:text-4xl text-amber-50">Interview smarter, not harder.</span>
-          <span className="text-xl md:text-4xl text-amber-50">Get hired faster.</span>
+        {/* Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-purple-950 to-pink-950" />
+        
+        {/* Animated gradient orbs */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/30 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-600/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         </div>
-        <div className="absolute -bottom-5 right-0 hidden md:block">
-          <Image src="/model.png" alt="model" width={450} height={300} />
-        </div>
-        <div className="absolute -bottom-10 -right-10 block sm:hidden overflow-hidden">
-          <Image src="/model.png" alt="model" width={150} height={100} />
+
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="space-y-6"
+          >
+            <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tight">
+              Be the First to Experience
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                AI-Powered Meetings
+              </span>
+            </h2>
+            
+            <p className="text-lg md:text-xl text-white/70 max-w-2xl mx-auto">
+              Join the waitlist for early access. Get exclusive features and be part of the future of meeting intelligence.
+            </p>
+
+            {/* Waitlist Form */}
+            <div className="pt-8">
+              <WaitlistForm />
+            </div>
+          </motion.div>
         </div>
       </section>
 
