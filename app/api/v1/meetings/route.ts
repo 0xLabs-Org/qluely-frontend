@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('[MEETINGS] Error fetching meetings:', error);
     return NextResponse.json(
-      { success: false, error: true, message: 'Internal server error' },
+      { success: false, error: true, message: 'error' },
       { status: STATUS.INTERNAL_SERVER_ERROR },
     );
   }

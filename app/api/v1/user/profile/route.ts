@@ -4,6 +4,27 @@ import { prisma } from '@/lib/prisma';
 import { STATUS } from '@/lib/types';
 import { generateToken } from '@/helper/auth';
 import { AccountType } from '@/lib/types';
+import { withCache } from '@/lib/cache';
+
+// Cached fetcher for user profile
+const getCachedUserProfile = (userId: string) => 
+  withCache(
+    async () => {
+      console.log('[CACHE] Fetching user profile from DB for', userId);
+      return await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          isOnboarded: true,
+          onboardingSkipped: true,
+          email: true,
+          account: { select: { plan: true } },
+        },
+      });
+    },
+    [`user-profile-${userId}`],
+    [`user:${userId}`, 'user-profile'],
+    60 * 60 // Cache for 1 hour
+  )();
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,15 +58,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        isOnboarded: true,
-        onboardingSkipped: true,
-        email: true,
-        account: { select: { plan: true } },
-      },
-    });
+    const user = await getCachedUserProfile(userId);
 
     if (!user) {
       return NextResponse.json({ message: 'User not found' }, { status: STATUS.NOT_FOUND });

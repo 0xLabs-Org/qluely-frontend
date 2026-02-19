@@ -1,27 +1,31 @@
-type CacheEntry = {
-  value: string;
-  expiresAt: number; // epoch ms
-};
+import { unstable_cache } from 'next/cache';
+import { revalidateTag } from 'next/cache';
 
-const memStore = new Map<string, CacheEntry>();
-
-export async function get(key: string): Promise<string | null> {
-  const entry = memStore.get(key);
-  if (!entry) return null;
-  if (Date.now() > entry.expiresAt) {
-    memStore.delete(key);
-    return null;
-  }
-  return entry.value;
+/**
+ * Wraps an async function with Next.js unstable_cache.
+ * @param callback The async function to cache
+ * @param keyParts Array of strings to form the cache key
+ * @param tags Array of tags for revalidation
+ * @param revalidate number of seconds to revalidate (optional)
+ */
+export function withCache<T>(
+  callback: (...args: any[]) => Promise<T>,
+  keyParts: string[],
+  tags: string[],
+  revalidate?: number | false,
+) {
+  return unstable_cache(callback, keyParts, {
+    tags,
+    revalidate,
+  });
 }
 
-export async function setWithTTL(key: string, value: string, ttlSeconds: number): Promise<void> {
-  const expiresAt = Date.now() + ttlSeconds * 1000;
-  memStore.set(key, { value, expiresAt });
+/**
+ * Invalidates cache entries associated with the given tag.
+ * @param tag The cache tag to invalidate
+ */
+export async function invalidate(tag: string, profile: string = 'default'): Promise<void> {
+  revalidateTag(tag, profile);
 }
 
-export async function del(key: string): Promise<void> {
-  memStore.delete(key);
-}
-
-export default { get, setWithTTL, del };
+export default { withCache, invalidate };

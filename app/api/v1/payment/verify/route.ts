@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
             const decoded: any = jwt.verify(token, process.env.JWT_SECRET || '');
             const userId = decoded?.id;
             if (userId) {
-              await cache.del(`user:${userId}`);
+              await cache.invalidate(`user:${userId}`);
               console.log('[CACHE] Invalidated user cache for', userId);
             }
           } catch (e) {

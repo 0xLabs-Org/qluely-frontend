@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[MEETING OVERVIEW PROXY] Error:', error);
     return NextResponse.json(
-      { success: false, error: true, message: 'Internal server error' },
+      { success: false, error: true, message: 'error' },
       { status: STATUS.INTERNAL_SERVER_ERROR },
     );
   }

@@ -2,6 +2,38 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
 import { STATUS, UserDetails as UserDetailsType } from '@/lib/types';
+import { withCache } from '@/lib/cache';
+
+// Cached fetcher for user details
+const getCachedUserDetails = (userId: string) =>
+  withCache(
+    async () => {
+      console.log('[CACHE] Fetching user details from DB for', userId);
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          account: true,
+        },
+      });
+
+      if (!user) return null;
+
+      const account = user.account;
+      return {
+        plan: (account?.plan as any) ?? 'FREE',
+        period: (account?.period as any) ?? null,
+        planStartedAt: account?.planStartedAt ?? null,
+        planExpiresAt: account?.planExpiresAt ?? null,
+        creditsRemaining: account?.creditsRemaining ?? 0,
+        creditsUsed: account?.creditsUsed ?? 0,
+        imageCredits: account?.imageCredits ?? 0,
+        audioCredits: account?.audioCredits ?? 0,
+      } as UserDetailsType;
+    },
+    [`user-details-${userId}`],
+    [`user:${userId}`, 'user-details'],
+    60 * 60 // Cache for 1 hour
+  )();
 
 export async function GET(request: NextRequest) {
   try {
@@ -35,36 +67,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch fresh details from DB
+    const details = await getCachedUserDetails(userId);
 
-    // Build details from DB
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        account: true,
-      },
-    });
-
-    if (!user) {
+    if (!details) {
       return NextResponse.json(
         { success: false, error: true, message: 'details not found' },
         { status: STATUS.BAD_REQUEST },
       );
     }
-
-    const account = user.account;
-    const details: UserDetailsType = {
-      plan: (account?.plan as any) ?? 'FREE',
-      period: (account?.period as any) ?? null,
-      planStartedAt: account?.planStartedAt ?? null,
-      planExpiresAt: account?.planExpiresAt ?? null,
-      creditsRemaining: account?.creditsRemaining ?? 0,
-      creditsUsed: account?.creditsUsed ?? 0,
-      imageCredits: account?.imageCredits ?? 0,
-      audioCredits: account?.audioCredits ?? 0,
-    };
-
-    // No caching — always return fresh details
 
     return NextResponse.json(
       { success: true, error: false, message: 'details fetched', data: details },

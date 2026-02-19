@@ -173,7 +173,7 @@ export default function MeetingDetailsPage() {
             {error && (
                 <div className="dash-section dash-fade-in">
                     <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[var(--dash-state-critical)]/20 bg-[var(--dash-state-critical)]/5">
-                        <p className="text-[13px] text-[var(--dash-state-critical)] flex-1">{error}</p>
+                        <p className="text-[13px] text-[var(--dash-state-critical)] flex-1">Service Temporarily Unavailable</p>
                         <button
                             onClick={fetchOverview}
                             className="text-[13px] font-medium text-[var(--dash-state-critical)] hover:underline"
