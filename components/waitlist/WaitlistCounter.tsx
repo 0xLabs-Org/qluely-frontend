@@ -12,18 +12,28 @@ interface WaitlistCounterProps {
 export function WaitlistCounter({ className }: WaitlistCounterProps) {
   const [count, setCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     const fetchCount = async () => {
       try {
+        setError(false);
         const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/v1/waitlist/count`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
         if (data.success) {
           setCount(data.data.count);
+        } else {
+          setError(true);
         }
       } catch (error) {
         console.error('Failed to fetch waitlist count:', error);
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -36,11 +46,20 @@ export function WaitlistCounter({ className }: WaitlistCounterProps) {
     return () => clearInterval(interval);
   }, []);
 
-  if (loading || count === null) {
+  if (loading) {
     return (
       <div className={cn('inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full', className)}>
         <div className="w-4 h-4 bg-white/20 rounded-full animate-pulse" />
         <span className="text-white/60 text-sm">Loading...</span>
+      </div>
+    );
+  }
+
+  if (error || count === null) {
+    return (
+      <div className={cn('inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/10', className)}>
+        <Flame className="w-4 h-4 text-orange-400" />
+        <span className="text-white/90 text-sm font-medium">Join the waitlist</span>
       </div>
     );
   }

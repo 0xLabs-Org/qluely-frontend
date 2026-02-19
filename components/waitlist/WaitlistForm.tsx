@@ -14,10 +14,16 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
 
+  // Email validation regex
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !email.includes('@')) {
+    if (!email || !isValidEmail(email)) {
       setStatus('error');
       setMessage('Please enter a valid email');
       return;
@@ -34,15 +40,25 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
         body: JSON.stringify({ email, source: 'landing_page' }),
       });
 
+      // Handle HTTP errors first
+      if (!response.ok) {
+        if (response.status === 409) {
+          setStatus('error');
+          setMessage("You're already on the waitlist!");
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          setStatus('error');
+          setMessage(errorData.message || 'Something went wrong');
+        }
+        return;
+      }
+
       const data = await response.json();
 
       if (data.success) {
         setStatus('success');
         setMessage("You're on the list! Check your email for confirmation.");
         setEmail('');
-      } else if (response.status === 409) {
-        setStatus('error');
-        setMessage("You're already on the waitlist!");
       } else {
         setStatus('error');
         setMessage(data.message || 'Something went wrong');
