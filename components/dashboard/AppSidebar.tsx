@@ -43,7 +43,7 @@ const items = [
     },
     {
         title: "Meetings",
-        url: "#",
+        url: "/dashboard/meetings",
         icon: Video,
     },
     {
