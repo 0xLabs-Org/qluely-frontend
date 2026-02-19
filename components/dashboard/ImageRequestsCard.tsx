@@ -7,7 +7,7 @@ interface ImageRequestsCardProps {
 
 export function ImageRequestsCard({ used, total }: ImageRequestsCardProps) {
   const remaining = Math.max(0, total - used);
-  const usagePercent = total > 0 ? Math.min(Math.max((used / total) * 100, 0), 100) : 0;
+  const usagePercent = total > 0 ? Math.min(Math.max((remaining / total) * 100, 0), 100) : 0;
 
   return (
     <div className="dash-card group">
@@ -34,7 +34,7 @@ export function ImageRequestsCard({ used, total }: ImageRequestsCardProps) {
 
       {/* Primary Value */}
       <div className="flex items-baseline gap-1.5 mb-1.5">
-        <span className="dash-card__value">{used.toLocaleString()}</span>
+        <span className="dash-card__value">{remaining.toLocaleString()}</span>
         <span className="text-[14px] text-[var(--dash-text-muted)] font-medium">
           / {total.toLocaleString()}
         </span>
@@ -49,7 +49,7 @@ export function ImageRequestsCard({ used, total }: ImageRequestsCardProps) {
       </div>
 
       {/* Context */}
-      <p className="dash-card__context">{remaining.toLocaleString()} requests used</p>
+      <p className="dash-card__context">{used.toLocaleString()} requests remaining</p>
     </div>
   );
 }

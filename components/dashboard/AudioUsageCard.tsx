@@ -9,7 +9,7 @@ interface AudioUsageCardProps {
 
 export function AudioUsageCard({ used, total }: AudioUsageCardProps) {
     const remaining = Math.max(0, total - used);
-    const usagePercent = total > 0 ? Math.min(Math.max((used / total) * 100, 0), 100) : 0;
+    const usagePercent = total > 0 ? Math.min(Math.max((remaining / total) * 100, 0), 100) : 0;
 
     return (
         <div className="dash-card group">
@@ -23,7 +23,7 @@ export function AudioUsageCard({ used, total }: AudioUsageCardProps) {
 
             {/* Primary Value */}
             <div className="flex items-baseline gap-1.5 mb-1.5">
-                <span className="dash-card__value">{used.toLocaleString()}</span>
+                <span className="dash-card__value">{remaining.toLocaleString()}</span>
                 <span className="text-[14px] text-[var(--dash-text-muted)] font-medium">
                     / {total.toLocaleString()} mins
                 </span>
@@ -38,7 +38,7 @@ export function AudioUsageCard({ used, total }: AudioUsageCardProps) {
             </div>
 
             {/* Context */}
-            <p className="dash-card__context">{remaining.toLocaleString()} minutes used</p>
+            <p className="dash-card__context">{used.toLocaleString()} minutes remaining</p>
         </div>
     );
 }
