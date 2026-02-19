@@ -66,3 +66,10 @@ export interface MeetingsResponse {
     limit: number;
   } | null;
 }
+
+export interface MeetingOverviewResponse {
+  success: boolean;
+  error: boolean;
+  message: string;
+  data: string | null;
+}
