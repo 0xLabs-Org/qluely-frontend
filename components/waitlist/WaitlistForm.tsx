@@ -22,7 +22,7 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !isValidEmail(email)) {
       setStatus('error');
       setMessage('Please enter a valid email');
@@ -32,7 +32,7 @@ export function WaitlistForm({ className }: WaitlistFormProps) {
     setStatus('loading');
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/v1/waitlist/join`, {
+      const response = await fetch(`/api/v1/waitlist/join`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
