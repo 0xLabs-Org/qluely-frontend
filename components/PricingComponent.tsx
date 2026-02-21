@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Sparkles, Zap, Box } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -24,41 +24,27 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export type PlanType = 'BASIC' | 'PRO' | 'FREE' | 'UNLIMITED';
-export type PremiumPlanType = 'BASIC' | 'PRO' | 'UNLIMITED';
 export type CurrencyType = 'INR' | 'USD';
 export type BillingCycle = 'MONTH' | 'YEAR';
-export type PlanPricing = Record<BillingCycle, number>;
-
-export const PLAN: Record<CurrencyType, Record<PremiumPlanType, PlanPricing>> = {
-  INR: {
-    BASIC: {
-      MONTH: 1199,
-      YEAR: 12899,
-    },
-    PRO: {
-      MONTH: 2499,
-      YEAR: 22999,
-    },
-    UNLIMITED: {
-      MONTH: 4199,
-      YEAR: 34999,
-    },
-  },
-  USD: {
-    BASIC: {
-      MONTH: 15,
-      YEAR: 139,
-    },
-    PRO: {
-      MONTH: 29,
-      YEAR: 279,
-    },
-    UNLIMITED: {
-      MONTH: 49,
-      YEAR: 349,
-    },
-  },
+export type PlanPricing = {
+  MONTH: number;
+  YEAR: number;
+  yearlyDiscountValue?: number | null;
 };
+
+interface BackendPlan {
+  id: string;
+  name: PlanType;
+  currency: CurrencyType;
+  description: string;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  popular: boolean;
+  monthlyDiscount: number | null;
+  yearlyDiscount: number | null;
+}
+
+
 
 const CURRENCY_SYMBOLS: Record<CurrencyType, string> = {
   INR: '₹',
@@ -67,12 +53,12 @@ const CURRENCY_SYMBOLS: Record<CurrencyType, string> = {
 const plans = [
   {
     name: 'Starter',
-    planKey: 'BASIC' as PremiumPlanType,
+    planKey: 'BASIC' as PlanType,
     description: 'Best for individuals getting started',
     icon: Sparkles,
-    gradient: 'from-slate-50 to-gray-50',
-    iconColor: 'text-slate-500',
-    iconBg: 'bg-slate-100',
+    gradient: 'from-blue-50 to-indigo-50',
+    iconColor: 'text-blue-500',
+    iconBg: 'bg-blue-100',
     cta: 'Get Started',
     ctaStyle: 'outline',
     features: [
@@ -86,7 +72,7 @@ const plans = [
   },
   {
     name: 'Pro',
-    planKey: 'PRO' as PremiumPlanType,
+    planKey: 'PRO' as PlanType,
     description: 'For professionals and regular users',
     popular: true,
     icon: Zap,
@@ -106,12 +92,12 @@ const plans = [
   },
   {
     name: 'Unlimited',
-    planKey: 'UNLIMITED' as PremiumPlanType,
+    planKey: 'UNLIMITED' as PlanType,
     description: 'For daily and high-intensity users',
     icon: Box,
-    gradient: 'from-slate-50 to-gray-50',
-    iconColor: 'text-slate-500',
-    iconBg: 'bg-slate-100',
+    gradient: 'from-purple-50 to-fuchsia-50',
+    iconColor: 'text-purple-600',
+    iconBg: 'bg-purple-100',
     cta: 'Go Unlimited',
     ctaStyle: 'outline',
     features: [
@@ -134,8 +120,49 @@ const PricingComponent = ({ id }: PricingProps) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [currency, setCurrency] = useState<CurrencyType>('INR');
   const [userAccountType, setUserAccountType] = useState<string | null>(null);
+  const [backendPlans, setBackendPlans] = useState<BackendPlan[]>([]);
+  const [isPricingLoading, setIsPricingLoading] = useState(true);
   const { user, isLoading } = useAuth();
   const { addToast } = useToast();
+
+  useEffect(() => {
+    const fetchPaymentDetails = async () => {
+      try {
+        const res = await fetch('/api/v1/payment/plan');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && Array.isArray(data.data)) {
+            setBackendPlans(data.data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching payment details:', error);
+      } finally {
+        setIsPricingLoading(false);
+      }
+    };
+    fetchPaymentDetails();
+  }, []);
+
+  // Compute dynamic state from backend plans
+  const dynamicPlanData = useMemo(() => {
+    // Initial structure to prevent crashes before data loads
+    const data: Record<string, Record<string, PlanPricing>> = {
+      INR: {},
+      USD: {},
+    };
+
+    backendPlans.forEach((bp) => {
+      if (!data[bp.currency]) data[bp.currency] = {};
+      data[bp.currency][bp.name] = {
+        MONTH: bp.monthlyPrice,
+        YEAR: bp.yearlyPrice,
+        yearlyDiscountValue: bp.yearlyDiscount,
+      };
+    });
+
+    return data;
+  }, [backendPlans]);
 
   const currencySymbol = CURRENCY_SYMBOLS[currency];
 
@@ -260,20 +287,48 @@ const PricingComponent = ({ id }: PricingProps) => {
           {plans.map((plan, index) => {
             const Icon = plan.icon;
 
-            // Determine if plan should be disabled based on user account type
+            const isCurrentPlan = userAccountType === plan.planKey;
             const isDisabled = (() => {
-              if (!userAccountType || userAccountType === 'FREE') return false; // Show all for free users
-              if (userAccountType === 'BASIC') return plan.name === 'Starter'; // Disable BASIC for BASIC users
-              if (userAccountType === 'PRO') return plan.name === 'Starter' || plan.name === 'Pro'; // Disable BASIC and PRO for PRO users
-              return false;
+              if (!userAccountType) return false;
+              const planOrder: Record<PlanType, number> = {
+                FREE: 0,
+                BASIC: 1,
+                PRO: 2,
+                UNLIMITED: 3,
+              };
+              const currentUserLevel = planOrder[userAccountType as PlanType] ?? 0;
+              const targetPlanLevel = planOrder[plan.planKey];
+              return targetPlanLevel <= currentUserLevel;
             })();
 
-            const monthlyPrice = PLAN[currency][plan.planKey].MONTH;
-            const yearlyPrice = PLAN[currency][plan.planKey].YEAR;
-            const monthlyEquivalent =
-              billingCycle === 'yearly' ? Math.ceil(yearlyPrice / 12) : monthlyPrice;
+            const pricing = dynamicPlanData[currency]?.[plan.planKey];
 
-            const yearlyDiscount = calculateDiscount(monthlyPrice * 12, yearlyPrice);
+            // Use backend values as base prices
+            const baseMonthlyPrice = pricing?.MONTH ?? 0;
+            const baseYearlyPrice = pricing?.YEAR ?? 0;
+
+            const backendMatch = backendPlans.find(
+              (bp) => bp.name === plan.planKey && bp.currency === currency,
+            );
+
+            const monthlyDiscount = backendMatch?.monthlyDiscount ?? 0;
+            const yearlyDiscount = backendMatch?.yearlyDiscount ?? 0;
+
+            const finalMonthlyPrice =
+              monthlyDiscount > 0
+                ? Math.round(baseMonthlyPrice * (1 - monthlyDiscount / 100))
+                : baseMonthlyPrice;
+
+            const finalYearlyPrice =
+              yearlyDiscount > 0
+                ? Math.round(baseYearlyPrice * (1 - yearlyDiscount / 100))
+                : baseYearlyPrice;
+
+            const monthlyEquivalent =
+              billingCycle === 'yearly' ? Math.ceil(finalYearlyPrice / 12) : finalMonthlyPrice;
+
+            const isPopular = backendMatch ? backendMatch.popular : plan.popular;
+            const description = backendMatch ? backendMatch.description : plan.description;
 
             return (
               <motion.div
@@ -286,10 +341,10 @@ const PricingComponent = ({ id }: PricingProps) => {
                   'relative p-8 rounded-3xl border shadow-sm flex flex-col bg-linear-to-b hover:shadow-xl hover:-translate-y-1 transition-all',
                   plan.gradient,
                   isDisabled && 'opacity-50 cursor-not-allowed',
-                  plan.popular && 'lg:-my-5 lg:py-20 lg:shadow-lg',
+                  isPopular && 'lg:-my-5 lg:py-20 lg:shadow-lg',
                 )}
               >
-                {plan.popular && (
+                {isPopular && (
                   <div className="absolute top-6 right-6 bg-yellow-300 text-xs font-bold px-3 py-1.5 rounded-full">
                     Most popular
                   </div>
@@ -303,40 +358,74 @@ const PricingComponent = ({ id }: PricingProps) => {
                 </div>
 
                 <h3 className="text-xl font-bold mb-1">{plan.name}</h3>
-                <p className="text-slate-500 text-sm mb-6">{plan.description}</p>
+                <p className="text-slate-500 text-sm mb-6">{description}</p>
 
                 {/* Pricing */}
                 {billingCycle === 'monthly' && (
-                  <div className="flex items-baseline gap-2 mb-8">
-                    <span className="text-5xl font-semibold">
-                      <NumberTicker value={monthlyPrice} startValue={monthlyPrice * 1.1} />{' '}
-                      <span className="text-2xl font-semibold text-slate-900">
-                        {currencySymbol}
+                  <div className="mb-8">
+                    {monthlyDiscount > 0 && (
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-lg line-through text-slate-400 font-normal">
+                          {currencySymbol}
+                          {baseMonthlyPrice}
+                        </span>
+                        <span className="text-xs font-bold px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                          -{monthlyDiscount}%
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-5xl font-semibold">
+                        <NumberTicker
+                          value={finalMonthlyPrice}
+                          startValue={baseMonthlyPrice}
+                          direction="up"
+                        />{' '}
+                        <span className="text-2xl font-semibold text-slate-900">
+                          {currencySymbol}
+                        </span>
                       </span>
-                    </span>
-                    <span className="text-slate-400">/ month</span>
+                      <span className="text-slate-400">/ month</span>
+                    </div>
                   </div>
                 )}
 
                 {billingCycle === 'yearly' && (
-                  <>
+                  <div className="mb-8">
+                    {yearlyDiscount > 0 && (
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-lg line-through text-slate-400 font-normal">
+                          {currencySymbol}
+                          {baseYearlyPrice}
+                        </span>
+                        <span className="text-xs font-bold px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                          -{yearlyDiscount}%
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-end gap-2 mb-1">
                       <span className="text-5xl font-semibold">
-                        <NumberTicker value={yearlyPrice} startValue={yearlyPrice * 1.1} />{' '}
+                        <NumberTicker
+                          value={finalYearlyPrice}
+                          startValue={baseYearlyPrice}
+                          direction="up"
+                        />{' '}
                         <span className="text-2xl font-semibold text-slate-900">
                           {currencySymbol}
                         </span>
                       </span>
                       <span className="text-slate-400">/ year</span>
                     </div>
-                    <p className="text-sm text-slate-500 mb-2">
-                      {currencySymbol}
-                      {monthlyEquivalent} / month billed annually
-                    </p>
-                    <p className="text-sm font-medium text-green-600 mb-6">
-                      Save {yearlyDiscount}%
-                    </p>
-                  </>
+                    {finalYearlyPrice > 0 && (
+                      <p className="text-sm text-slate-500 mb-2">
+                        {currencySymbol}
+                        {monthlyEquivalent} / month billed annually
+                      </p>
+                    )}
+                    {yearlyDiscount > 0 && (
+                      <p className="text-sm font-medium text-green-600">Save {yearlyDiscount}%</p>
+                    )}
+                  </div>
                 )}
 
                 {/* CTA */}
@@ -345,7 +434,7 @@ const PricingComponent = ({ id }: PricingProps) => {
                     disabled
                     className="w-full py-3.5 rounded-xl font-medium mb-8 bg-slate-200 text-slate-500 cursor-not-allowed"
                   >
-                    Already Subscribed
+                    {isCurrentPlan ? 'Current Plan' : 'Already Subscribed'}
                   </button>
                 ) : (
                   <AlertDialog>
@@ -402,9 +491,10 @@ const PricingComponent = ({ id }: PricingProps) => {
                                 'Starting payment process for authenticated user:',
                                 user.email,
                               );
+
                               await pay(
                                 currency,
-                                plan.planKey,
+                                plan.planKey as 'BASIC' | 'PRO' | 'UNLIMITED',
                                 billingCycle === 'yearly' ? 'YEAR' : 'MONTH',
                               );
                             } catch (error: any) {

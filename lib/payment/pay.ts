@@ -140,28 +140,12 @@ export async function pay(
               // We don't resolve here as we are navigating away
             }
           } catch (err) {
-            const error = err instanceof Error ? err : new Error(String(err));
-            showToast('Payment verification failed: ' + error.message, 'error');
-            const errorWithFlag = error as any;
-            errorWithFlag.handled = true;
-            if (onError) onError(errorWithFlag);
-            reject(errorWithFlag);
+            showToast('Payment verification failed', 'error');
           }
         },
         modal: {
           ondismiss: function () {
-            console.log('Payment modal was closed by user');
-            const error = new Error('payment_modal_dismissed');
-            (error as any).handled = true;
             showToast('Payment cancelled', 'info');
-            if (onError) {
-              try {
-                onError(error);
-              } catch (e) {
-                console.error('onError callback threw', e);
-              }
-            }
-            reject(error);
           },
         },
         theme: { color: '#000000' },
