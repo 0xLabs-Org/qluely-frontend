@@ -193,12 +193,11 @@ function PaymentPageContent() {
           {/* Action buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-8">
             <Button
-              onClick={() => router.push('/')}
-              className={`px-8 py-3 rounded-xl font-semibold transition-all duration-200 ${
-                isSuccess
+              onClick={() => router.push('/dashboard')}
+              className={`px-8 py-3 rounded-xl font-semibold transition-all duration-200 ${isSuccess
                   ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl'
                   : 'bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl'
-              }`}
+                }`}
             >
               Back to Home
             </Button>

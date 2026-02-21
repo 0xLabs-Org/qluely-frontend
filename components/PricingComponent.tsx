@@ -409,6 +409,7 @@ const PricingComponent = ({ id }: PricingProps) => {
                               );
                             } catch (error: any) {
                               console.error('Payment error:', error);
+                              if (error?.handled) return;
                               addToast(
                                 error.message || 'Payment failed. Please try again.',
                                 'error',

@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 export type ToastType = 'default' | 'success' | 'error' | 'warning' | 'info';
 
@@ -44,11 +44,30 @@ export function ToastProvider({ children }: ToastProviderProps) {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
 
+  useEffect(() => {
+    const handleShowToast = (event: any) => {
+      const { message, type, duration } = event.detail;
+      addToast(message, type, duration);
+    };
+
+    window.addEventListener('show-toast', handleShowToast);
+    return () => window.removeEventListener('show-toast', handleShowToast);
+  }, []);
+
   return (
     <ToastContext.Provider value={{ toasts, addToast, removeToast }}>
       {children}
     </ToastContext.Provider>
   );
+}
+
+export function showToast(message: string, type: ToastType = 'default', duration = 3000) {
+  if (typeof window !== 'undefined') {
+    const event = new CustomEvent('show-toast', {
+      detail: { message, type, duration },
+    });
+    window.dispatchEvent(event);
+  }
 }
 
 export function useToast() {
