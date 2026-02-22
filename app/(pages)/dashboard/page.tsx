@@ -81,13 +81,14 @@ function DashboardSkeleton() {
 }
 
 export default function DashboardPage() {
-  const { user, logout, isLoading: authLoading } = useAuth();
+  const { user, logout, isLoading: authLoading, updateUser } = useAuth();
   const router = useRouter();
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchUserDetails = useCallback(async () => {
+    if (userDetails) return; // Avoid redundant fetches if details already exist
     try {
       setDetailsLoading(true);
       setError(null);
@@ -115,6 +116,7 @@ export default function DashboardPage() {
 
       if (data.success && data.data) {
         setUserDetails(data.data);
+        updateUser(data.data); // Sync with AuthContext
       } else {
         setError(data.message || 'Failed to fetch user details');
       }
@@ -124,7 +126,7 @@ export default function DashboardPage() {
     } finally {
       setDetailsLoading(false);
     }
-  }, [logout]);
+  }, [logout, userDetails, updateUser]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -176,16 +178,23 @@ export default function DashboardPage() {
         <h1 className="dash-greeting__title">
           {getGreeting()}, {displayName}
         </h1>
-        <p className="dash-greeting__subtitle">
-          Here&apos;s how your AI assistant is performing.
-        </p>
+        <p className="dash-greeting__subtitle">Here&apos;s how your AI assistant is performing.</p>
       </div>
 
       {/* Error state */}
       {error && (
         <div className="dash-section dash-fade-in">
           <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[var(--dash-state-critical)]/20 bg-[var(--dash-state-critical)]/5">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--dash-state-critical)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--dash-state-critical)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />
               <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -216,22 +225,13 @@ export default function DashboardPage() {
       {/* 2. Metric Cards Grid */}
       <div className="dash-grid-metrics dash-section--lg">
         <div className="dash-fade-in dash-fade-in-delay-2">
-          <MeetingCreditsCard
-            creditsUsed={creditsUsed}
-            creditsRemaining={creditsRemaining}
-          />
+          <MeetingCreditsCard creditsUsed={creditsUsed} creditsRemaining={creditsRemaining} />
         </div>
         <div className="dash-fade-in dash-fade-in-delay-3">
-          <AudioUsageCard
-            used={audioCreditsUsed}
-            total={audioMinutesLimit}
-          />
+          <AudioUsageCard used={audioCreditsUsed} total={audioMinutesLimit} />
         </div>
         <div className="dash-fade-in dash-fade-in-delay-4">
-          <ImageRequestsCard
-            used={imageCreditsUsed}
-            total={totalImageCredits}
-          />
+          <ImageRequestsCard used={imageCreditsUsed} total={totalImageCredits} />
         </div>
       </div>
 

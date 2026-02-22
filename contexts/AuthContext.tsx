@@ -9,6 +9,7 @@ interface User {
   accountType?: string;
   isOnboarded?: boolean;
   onboardingSkipped?: boolean;
+  creditsUsed?: number; // Added globally
 }
 
 interface AuthContextType {

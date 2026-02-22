@@ -30,12 +30,21 @@ const planNames: Record<AccountType, string> = {
   [AccountType.UNLIMITED]: 'Unlimited Plan',
 };
 
+interface User {
+  id: string;
+  email: string;
+  accountType?: AccountType;
+  creditsUsed?: number; // Added missing property
+}
+
 export function PlanCard({ plan, renewsAt, isActive = true }: PlanCardProps) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<AccountType | null>(null);
   const [currency, setCurrency] = useState<'USD' | 'INR'>('USD');
   const [extras, setExtras] = useState<Record<string, any> | null>(null);
+
+  const currentPlan = user?.accountType || 'FREE';
 
   const formatDate = (date: Date | null) => {
     if (!date) return 'N/A';
@@ -53,6 +62,15 @@ export function PlanCard({ plan, renewsAt, isActive = true }: PlanCardProps) {
     if (p === AccountType.BASIC) return [AccountType.PRO, AccountType.UNLIMITED];
     if (p === AccountType.PRO) return [AccountType.UNLIMITED];
     return [] as AccountType[];
+  };
+
+  const fetchExtras = async () => {
+    if (!extras) {
+      const details = user; // Reuse user details from AuthContext
+      const creditsUsed = details?.creditsUsed || 0;
+      const usedExtras = { upgradeFrom: currentPlan, creditsUsed }; // Define usedExtras properly
+      setExtras(usedExtras); // Update state
+    }
   };
 
   return (
@@ -76,21 +94,8 @@ export function PlanCard({ plan, renewsAt, isActive = true }: PlanCardProps) {
                 className="block w-full bg-blue-600 text-white text-center py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
                 onClick={async () => {
                   try {
-                    // fetch server-side user details to decide upgrade charges
-                    const resp = await fetch('/api/v1/user/details', {
-                      method: 'GET',
-                      headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
-                      },
-                    });
-                    const details = resp.ok ? await resp.json() : null;
-
-                    const currentPlan = (details && details.data && details.data.plan) || 'FREE';
-                    const creditsUsed =
-                      details && details.data && typeof details.data.creditsUsed === 'number'
-                        ? details.data.creditsUsed
-                        : 0;
+                    const currentPlan = user?.accountType || 'FREE'; // Use AuthContext for plan
+                    const creditsUsed = user?.creditsUsed || 0; // Reuse user details from AuthContext
 
                     setExtras({ upgradeFrom: currentPlan, creditsUsed });
                     const avail = availablePlansForCurrent(currentPlan as AccountType);
@@ -157,23 +162,7 @@ export function PlanCard({ plan, renewsAt, isActive = true }: PlanCardProps) {
                       if (!selectedPlan) return;
                       // ensure extras are available; refetch if not
                       let usedExtras = extras;
-                      if (!usedExtras) {
-                        const resp = await fetch('/api/v1/user/details', {
-                          method: 'GET',
-                          headers: {
-                            'Content-Type': 'application/json',
-                            Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
-                          },
-                        });
-                        const details = resp.ok ? await resp.json() : null;
-                        const currentPlan =
-                          (details && details.data && details.data.plan) || 'FREE';
-                        const creditsUsed =
-                          details && details.data && typeof details.data.creditsUsed === 'number'
-                            ? details.data.creditsUsed
-                            : 0;
-                        usedExtras = { upgradeFrom: currentPlan, creditsUsed };
-                      }
+                      await fetchExtras();
 
                       await pay(
                         currency,
