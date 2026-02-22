@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
 import { STATUS, UserDetails as UserDetailsType } from '@/lib/types';
 import { withCache } from '@/lib/cache';
-const pdf = require('pdf-parse');
 
 // Cached fetcher for user details
 const getCachedUserDetails = (userId: string) =>
@@ -121,36 +120,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const formData = await request.formData();
-    const file = formData.get('file');
+    const body = await request.json();
+    const extractedData = body.data;
 
-    if (!file || typeof file === 'string') {
+    if (!extractedData) {
       return NextResponse.json(
-        { success: false, error: true, message: 'No file provided or invalid file' },
-        { status: STATUS.BAD_REQUEST }
-      );
-    }
-
-    const fileExt = file.name.split('.').pop()?.toLowerCase();
-    if (fileExt !== 'pdf' && file.type !== 'application/pdf') {
-      return NextResponse.json(
-        { success: false, error: true, message: 'Only PDF files are supported' },
-        { status: STATUS.BAD_REQUEST }
-      );
-    }
-
-    // Parse the PDF
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    
-    let extractedText = '';
-    try {
-      const pdfData = await pdf(buffer);
-      extractedText = pdfData.text;
-    } catch (pdfErr) {
-      console.error('[USER] Error parsing PDF', pdfErr);
-      return NextResponse.json(
-        { success: false, error: true, message: 'Failed to extract text from PDF' },
+        { success: false, error: true, message: 'No data provided' },
         { status: STATUS.BAD_REQUEST }
       );
     }
@@ -164,7 +139,7 @@ export async function POST(request: NextRequest) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ text: extractedText }),
+        body: JSON.stringify({ data: extractedData }),
       });
 
       const data = await response.json().catch(() => ({}));

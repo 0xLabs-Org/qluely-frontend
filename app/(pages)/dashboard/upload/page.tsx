@@ -4,6 +4,10 @@ import React, { useState } from 'react';
 import { UploadCloud, FileText, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useRouter } from 'next/navigation';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Use unpkg CDN for the worker to avoid build/configuration issues in Next.js
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 export default function UploadPage() {
     const [file, setFile] = useState<File | null>(null);
@@ -60,28 +64,37 @@ export default function UploadPage() {
         setError(null);
 
         try {
-            const formData = new FormData();
-            formData.append('file', file);
+            // Read and parse PDF client-side
+            const arrayBuffer = await file.arrayBuffer();
+            const pdfDocument = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
-            // We send the PDF file to our own Next.js API route first for parsing
-            const res = await fetch('/api/v1/user/details', {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
-                },
-                body: formData,
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                throw new Error(data.message || 'Failed to upload document');
+            let extractedText = '';
+            for (let i = 1; i <= pdfDocument.numPages; i++) {
+                const page = await pdfDocument.getPage(i);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items.map((item: any) => item.str).join(' ');
+                extractedText += pageText + '\n';
             }
+            console.log({ data: extractedText })
+
+            // We send the extracted data to our Next.js proxy
+            // const res = await fetch('/api/v1/user/details', {
+            //     method: 'POST',
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //         Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+            //     },
+            //     body: JSON.stringify({ data: extractedText }),
+            // });
+
+            // const data = await res.json();
+
+            // if (!res.ok) {
+            //     throw new Error(data.message || 'Failed to upload document');
+            // }
 
             setSuccess(true);
-            setTimeout(() => {
-                router.push('/dashboard');
-            }, 2000);
+
         } catch (err: any) {
             setError(err.message || 'An error occurred during upload.');
         } finally {
