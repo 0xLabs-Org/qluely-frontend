@@ -116,7 +116,11 @@ export default function DashboardPage() {
 
       if (data.success && data.data) {
         setUserDetails(data.data);
-        updateUser(data.data); // Sync with AuthContext
+        // Sync with AuthContext and normalize fields
+        updateUser({
+          ...data.data,
+          accountType: data.data.plan || (user as any)?.accountType,
+        });
       } else {
         setError(data.message || 'Failed to fetch user details');
       }

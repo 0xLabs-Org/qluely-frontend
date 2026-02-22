@@ -44,7 +44,7 @@ export default function BillingPage() {
   const [loading, setLoading] = useState(true);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [currency, setCurrency] = useState<CurrencyType>('INR');
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { addToast } = useToast();
 
   useEffect(() => {
@@ -64,7 +64,26 @@ export default function BillingPage() {
     fetchPlans();
   }, []);
 
+  if (loading || authLoading) {
+    return (
+      <div className="min-h-screen bg-[#fafafa] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-900 rounded-full animate-spin" />
+          <p className="text-slate-500 font-medium animate-pulse">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const getUserPlan = () => {
+    return (user as any)?.plan || user?.accountType;
+  };
+
+  const isCurrent = (planName: string) => planName === getUserPlan();
+
   const handleUpgrade = async (plan: PlanType) => {
+    if (isCurrent(plan)) return; // Prevent upgrade if plan is disabled
+
     try {
       // Find the specific plan object for the current currency
       const targetPlan = plans.find((p) => p.name === plan && p.currency === currency);
@@ -214,7 +233,7 @@ export default function BillingPage() {
                         cta="Get Started"
                         gradient="from-slate-600 via-slate-500 to-slate-400"
                         onUpgrade={() => handleUpgrade('BASIC')}
-                        userPlan={user?.accountType}
+                        isCurrent={isCurrent('BASIC')}
                       />
 
                       <PlanCard
@@ -246,7 +265,7 @@ export default function BillingPage() {
                         cta="Upgrade to Pro"
                         gradient="from-blue-600 via-indigo-500 to-cyan-400"
                         onUpgrade={() => handleUpgrade('PRO')}
-                        userPlan={user?.accountType}
+                        isCurrent={isCurrent('PRO')}
                       />
 
                       <PlanCard
@@ -277,7 +296,7 @@ export default function BillingPage() {
                         cta="Go Unlimited"
                         gradient="from-purple-600 via-violet-500 to-fuchsia-400"
                         onUpgrade={() => handleUpgrade('UNLIMITED')}
-                        userPlan={user?.accountType}
+                        isCurrent={isCurrent('UNLIMITED')}
                       />
                     </>
                   );
@@ -319,16 +338,17 @@ export default function BillingPage() {
 
                     <div className="flex flex-col items-start md:items-end gap-2">
                       <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-bold">$0</span>
+                        <span className="text-4xl font-bold">
+                          {currency === 'INR' ? '₹' : '$'}0
+                        </span>
                         <span className="text-slate-400 text-sm font-medium">/month</span>
                       </div>
                       <button
-                        disabled={user?.accountType === 'FREE'}
+                        disabled={true}
                         className={cn(
                           'mt-2 px-8 py-3 rounded-xl font-semibold transition-all duration-300 border-2',
-                          user?.accountType === 'FREE'
-                            ? 'bg-slate-50 text-slate-400 border-slate-100 cursor-not-allowed'
-                            : 'bg-white text-slate-900 border-slate-900 hover:bg-slate-900 hover:text-white',
+
+                          'bg-white text-slate-900 border-slate-900 hover:bg-slate-900 hover:text-white',
                         )}
                       >
                         Current Plan
@@ -390,7 +410,7 @@ export default function BillingPage() {
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </div >
   );
 }
 
@@ -408,7 +428,7 @@ interface PlanCardProps {
   gradient: string;
   popular?: boolean;
   onUpgrade: () => void;
-  userPlan?: string;
+  isCurrent?: boolean;
 }
 
 function PlanCard({
@@ -425,9 +445,8 @@ function PlanCard({
   gradient,
   popular,
   onUpgrade,
-  userPlan,
+  isCurrent = false,
 }: PlanCardProps) {
-  const isCurrent = userPlan?.toUpperCase() === name.toUpperCase();
   const currencySymbol = currency === 'INR' ? '₹' : '$';
 
   return (
@@ -486,11 +505,11 @@ function PlanCard({
           </div>
           {valueText && (
             <div className="mt-4 flex items-center gap-2">
-              <div className="h-[1px] flex-1 bg-slate-100" />
+              <div className="h-px flex-1 bg-slate-100" />
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 whitespace-nowrap">
                 {valueText}
               </span>
-              <div className="h-[1px] flex-1 bg-slate-100" />
+              <div className="h-px flex-1 bg-slate-100" />
             </div>
           )}
         </div>
