@@ -37,32 +37,51 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10', 10);
     const skip = (page - 1) * limit;
 
-    const [meetings, total] = await Promise.all([
-  prisma.meeting.findMany({
-    where: {
-      userId,
-      Request: {
-        some: {}, // at least one related Request exists
+    // 1. Find IDs of meetings that have more than 5 requests
+    const meetingIdsResult = await prisma.request.groupBy({
+      by: ['meetingId'],
+      where: {
+        Meeting: {
+          userId,
+        },
       },
-    },
-    skip,
-    take: limit,
-    orderBy: { createdAt: 'desc' },
-    include: {
       _count: {
-        select: { Request: true },
+        id: true,
       },
-    },
-  }),
-  prisma.meeting.count({
-    where: {
-      userId,
-      Request: {
-        some: {},
+      having: {
+        id: {
+          _count: {
+            gt: 1,
+          },
+        },
       },
-    },
-  }),
-]);
+    });
+
+    const meetingIds = meetingIdsResult.map((r) => r.meetingId);
+
+    // 2. Fetch paginated meetings and total count using the identified IDs
+    const [meetings, total] = await Promise.all([
+      prisma.meeting.findMany({
+        where: {
+          userId,
+          id: { in: meetingIds },
+        },
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          _count: {
+            select: { Request: true },
+          },
+        },
+      }),
+      prisma.meeting.count({
+        where: {
+          userId,
+          id: { in: meetingIds },
+        },
+      }),
+    ]);
 
 
     return NextResponse.json(
