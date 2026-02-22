@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
 import { STATUS, UserDetails as UserDetailsType } from '@/lib/types';
 import { withCache } from '@/lib/cache';
+const pdf = require('pdf-parse');
 
 // Cached fetcher for user details
 const getCachedUserDetails = (userId: string) =>
@@ -84,6 +85,113 @@ export async function GET(request: NextRequest) {
     console.error('[USER] Error fetching user details:', error);
     return NextResponse.json(
       { success: false, error: true, message: 'error while fetching user details' },
+      { status: STATUS.INTERNAL_SERVER_ERROR },
+    );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    console.log('[USER] POST received for proxying extracted text');
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { success: false, error: true, message: 'Unauthorized' },
+        { status: STATUS.UNAUTHORIZED },
+      );
+    }
+    const token = authHeader.replace('Bearer ', '');
+
+    let decoded: any;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET || '');
+    } catch (err) {
+      console.log('[USER] Token verification failed', err);
+      return NextResponse.json(
+        { success: false, error: true, message: 'Unauthorized' },
+        { status: STATUS.UNAUTHORIZED },
+      );
+    }
+
+    const userId = decoded?.id;
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: true, message: 'Unauthorized' },
+        { status: STATUS.UNAUTHORIZED },
+      );
+    }
+
+    const formData = await request.formData();
+    const file = formData.get('file');
+
+    if (!file || typeof file === 'string') {
+      return NextResponse.json(
+        { success: false, error: true, message: 'No file provided or invalid file' },
+        { status: STATUS.BAD_REQUEST }
+      );
+    }
+
+    const fileExt = file.name.split('.').pop()?.toLowerCase();
+    if (fileExt !== 'pdf' && file.type !== 'application/pdf') {
+      return NextResponse.json(
+        { success: false, error: true, message: 'Only PDF files are supported' },
+        { status: STATUS.BAD_REQUEST }
+      );
+    }
+
+    // Parse the PDF
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    
+    let extractedText = '';
+    try {
+      const pdfData = await pdf(buffer);
+      extractedText = pdfData.text;
+    } catch (pdfErr) {
+      console.error('[USER] Error parsing PDF', pdfErr);
+      return NextResponse.json(
+        { success: false, error: true, message: 'Failed to extract text from PDF' },
+        { status: STATUS.BAD_REQUEST }
+      );
+    }
+
+    // Proxy the extracted text to backend
+    const backendUrl = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:8000';
+    try {
+      const response = await fetch(`${backendUrl}/api/v1/user/details`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ text: extractedText }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        return NextResponse.json(
+          data,
+          { status: response.status }
+        );
+      }
+
+      return NextResponse.json(
+        { success: true, error: false, message: 'Successfully parsed and proxied text to backend', data },
+        { status: STATUS.OK }
+      );
+    } catch (fetchErr) {
+      console.error('[USER] Failed to proxy text to backend:', fetchErr);
+      return NextResponse.json(
+        { success: false, error: true, message: 'Proxy forwarding failed' },
+        { status: STATUS.INTERNAL_SERVER_ERROR }
+      );
+    }
+
+  } catch (error) {
+    console.error('[USER] POST handler error:', error);
+    return NextResponse.json(
+      { success: false, error: true, message: 'Server error processing file' },
       { status: STATUS.INTERNAL_SERVER_ERROR },
     );
   }
