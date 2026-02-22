@@ -71,8 +71,8 @@ export function AppSidebar() {
     return (
         <Sidebar collapsible="icon">
             <SidebarHeader className="py-4">
-                <Link href="/dashboard" className="flex items-center gap-2 px-2">
-                    <Image src="/logo.png" width={28} height={28} alt="Qluely" />
+                <Link href="/dashboard" className="flex items-center gap-2 px-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+                    <Image src="/logo.png" width={28} height={28} alt="Qluely" className="shrink-0 min-w-[28px] min-h-[28px]" />
                     <span className="font-bold text-xl tracking-tight group-data-[collapsible=icon]:hidden">
                         Qluely
                     </span>
