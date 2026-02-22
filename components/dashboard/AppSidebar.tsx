@@ -2,10 +2,9 @@
 
 import {
     LayoutDashboard,
-    Video,
+    Book,
     Upload,
-    Settings,
-    BarChart3,
+    Video,
     LogOut,
     ChevronUp,
     User2
@@ -52,15 +51,11 @@ const items = [
         icon: Upload,
     },
     {
-        title: "Metrics",
-        url: "#",
-        icon: BarChart3,
-    },
-    {
-        title: "Settings",
-        url: "#",
-        icon: Settings,
-    },
+        title: "Billing",
+        url: "/dashboard/billing",
+        icon: Book,
+    }
+
 ];
 
 export function AppSidebar() {
@@ -93,7 +88,7 @@ export function AppSidebar() {
                                 <SidebarMenuItem key={item.title}>
                                     <SidebarMenuButton asChild isActive={pathname === item.url} tooltip={item.title}>
                                         <Link href={item.url}>
-                                            <item.icon className="h-4 w-4" />
+                                            <item.icon className="h-5 w-5" />
                                             <span>{item.title}</span>
                                         </Link>
                                     </SidebarMenuButton>
@@ -111,13 +106,13 @@ export function AppSidebar() {
                             <DropdownMenuTrigger asChild>
                                 <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                                     <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
-                                        <User2 className="size-4" />
+                                        <User2 className="size-5" />
                                     </div>
                                     <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
                                         <span className="truncate font-semibold">{user?.email?.split('@')[0]}</span>
                                         <span className="truncate text-xs text-muted-foreground">{user?.email}</span>
                                     </div>
-                                    <ChevronUp className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
+                                    <ChevronUp className="ml-auto size-5 group-data-[collapsible=icon]:hidden" />
                                 </SidebarMenuButton>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
@@ -125,7 +120,7 @@ export function AppSidebar() {
                                 className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
                             >
                                 <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer" onClick={handleLogout}>
-                                    <LogOut className="mr-2 h-4 w-4" />
+                                    <LogOut className="mr-2 h-5 w-5" />
                                     <span>Logout</span>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
