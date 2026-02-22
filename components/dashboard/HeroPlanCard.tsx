@@ -61,7 +61,9 @@ export function HeroPlanCard({
   const [open, setOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<AccountType | null>(null);
   const [currency, setCurrency] = useState<'USD' | 'INR'>('USD');
-  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [period, setPeriod] = useState<'MONTH' | 'YEAR'>('MONTH');
+
+  const [_, setPaymentError] = useState<string | null>(null);
 
   // Compute health state
   const healthState = useMemo(() => {
@@ -107,19 +109,27 @@ export function HeroPlanCard({
     setOpen(true);
   };
 
+  const [isPaying, setIsPaying] = useState(false);
+
   const handlePayment = async () => {
     if (!selectedPlan) return;
     try {
       setPaymentError(null);
-      await pay(currency, selectedPlan as 'BASIC' | 'PRO' | 'UNLIMITED', 'MONTH', {
+      setIsPaying(true);
+      await pay(currency, selectedPlan as 'BASIC' | 'PRO' | 'UNLIMITED', period as 'MONTH' | 'YEAR', {
         upgradeFrom: plan,
         creditsUsed,
       });
+      // If pay() doesn't redirect (e.g. if onSuccess was used internally, but here it's not), 
+      // we might want to close the modal or refresh.
+      // But pay() typically redirects to /payment?verification=true now.
       setOpen(false);
-      window.location.reload();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Payment failed', error);
+      if (error?.handled) return;
       setPaymentError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setIsPaying(false);
     }
   };
 
@@ -257,11 +267,10 @@ export function HeroPlanCard({
                     {availablePlansForCurrent(plan).map((p) => (
                       <label
                         key={p}
-                        className={`p-3 border rounded-lg cursor-pointer flex items-center transition-all ${
-                          selectedPlan === p
-                            ? 'border-[var(--dash-accent)] bg-blue-50/50'
-                            : 'border-[var(--dash-border)] hover:border-[var(--dash-text-muted)]'
-                        }`}
+                        className={`p-3 border rounded-lg cursor-pointer flex items-center transition-all ${selectedPlan === p
+                          ? 'border-[var(--dash-accent)] bg-blue-50/50'
+                          : 'border-[var(--dash-border)] hover:border-[var(--dash-text-muted)]'
+                          }`}
                       >
                         <input
                           type="radio"
@@ -287,21 +296,40 @@ export function HeroPlanCard({
                         key={c}
                         type="button"
                         onClick={() => setCurrency(c as 'USD' | 'INR')}
-                        className={`px-3 py-1.5 text-sm rounded-lg border transition-all ${
-                          currency === c
-                            ? 'bg-[var(--dash-text-primary)] text-white border-transparent'
-                            : 'bg-white border-[var(--dash-border)] text-[var(--dash-text-secondary)] hover:border-[var(--dash-text-muted)]'
-                        }`}
+                        className={`px-3 py-1.5 text-sm rounded-lg border transition-all ${currency === c
+                          ? 'bg-[var(--dash-text-primary)] text-white border-transparent'
+                          : 'bg-white border-[var(--dash-border)] text-[var(--dash-text-secondary)] hover:border-[var(--dash-text-muted)]'
+                          }`}
                       >
                         {c}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="mt-5 mb-2 font-medium text-sm text-[var(--dash-text-secondary)]">
+                    Period
+                  </div>
+                  <div className="flex gap-2">
+                    {['MONTH', 'YEAR'].map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setPeriod(p as 'MONTH' | 'YEAR')}
+                        className={`px-3 py-1.5 text-sm rounded-lg border transition-all ${period === p
+                          ? 'bg-[var(--dash-text-primary)] text-white border-transparent'
+                          : 'bg-white border-[var(--dash-border)] text-[var(--dash-text-secondary)] hover:border-[var(--dash-text-muted)]'
+                          }`}
+                      >
+                        {p}
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handlePayment}>Continue to Payment</AlertDialogAction>
+                  <AlertDialogCancel disabled={isPaying}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handlePayment} disabled={isPaying || !selectedPlan}>
+                    {isPaying ? 'Processing...' : 'Continue to Payment'}
+                  </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>

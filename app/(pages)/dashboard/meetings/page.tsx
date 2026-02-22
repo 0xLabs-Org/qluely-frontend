@@ -149,12 +149,16 @@ export default function MeetingsPage() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <button
-                                                className="text-[13px] font-medium text-indigo-600 hover:text-indigo-700 hover:underline"
+                                            {meeting._count?.Request!! > 5 ? <button
+                                                className="text-[13px] font-medium bg-blue-600 hover:bg-blue-500  text-white px-2 py-1 rounded"
                                                 onClick={() => router.push(`/dashboard/meetings/${meeting.id}`)}
                                             >
                                                 View Details
-                                            </button>
+                                            </button> : <button
+                                                className="text-[13px] font-medium"
+                                            >
+                                                No Overview
+                                            </button>}
                                         </td>
                                     </tr>
                                 ))

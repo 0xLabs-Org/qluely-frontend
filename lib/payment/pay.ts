@@ -1,6 +1,8 @@
 'use client';
 
 import { STORAGE_KEYS } from '@/lib/storage';
+import { showToast } from '@/contexts/ToastContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 export async function pay(
   currency: 'INR' | 'USD' = 'USD',
@@ -49,6 +51,7 @@ export async function pay(
 
     //create order using proxy server
     const bodyPayload = { currency, plan, period, ...(extras || {}) };
+    console.log('Pay.ts: Order payload:', bodyPayload);
     const res = await fetch('/api/v1/payment/order', {
       method: 'POST',
       headers,
@@ -58,10 +61,26 @@ export async function pay(
     console.log('Pay.ts: Order response received with status:', res.status);
 
     if (!res.ok) {
-      const errorResponse = await res.json();
-      console.error('Pay.ts: Order creation failed with status:', res.status); //[Debug]
+      let errorResponse: any = {};
+      try {
+        errorResponse = await res.json();
+      } catch (e) {
+        console.error('Pay.ts: Failed to parse error response body', e);
+      }
+      console.error('Pay.ts: Order creation failed with status:', res.status);
       console.error('Pay.ts: Error response:', errorResponse);
-      throw new Error(errorResponse.message || `Failed to create order: ${res.status}`);
+
+      const message = errorResponse?.message || `Failed to create order: ${res.status}`;
+
+      // Friendly handling for common backend minimum-amount error
+      if (typeof message === 'string' && message.toLowerCase().includes('minimum')) {
+        showToast('Selected plan price is invalid. Please contact support.', 'error');
+        const err: any = new Error('Selected plan price is invalid');
+        err.handled = true;
+        throw err;
+      }
+
+      throw new Error(message);
     }
 
     const orderResponse = await res.json();
@@ -74,90 +93,78 @@ export async function pay(
     const order = orderResponse.data;
     console.log('Order created successfully:', order);
 
-    const options = {
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
-      amount: order.amount,
-      currency: order.currency,
-      order_id: order.id,
-      name: 'Qluely',
-      description: `${plan}`,
-      handler: async (response: any) => {
-        // Use the token from outer scope instead of retrieving again
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-        };
+    return new Promise((resolve, reject) => {
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.id,
+        name: 'Qluely',
+        description: `${plan}`,
+        handler: async (response: any) => {
+          // Use the token from outer scope instead of retrieving again
+          const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+          };
 
-        headers['Authorization'] = `Bearer ${token}`;
+          headers['Authorization'] = `Bearer ${token}`;
 
-        console.log('verify params', response);
-        console.log('before verify', headers);
-        //verify payment using payment signature
-        const verifyRes = await fetch('/api/v1/payment/verify', {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(response),
-        });
-
-        const verifyResponse = await verifyRes.json();
-        console.log('Verify response:', verifyResponse);
-
-        if (!verifyRes.ok || !verifyResponse.success) {
-          console.error('Payment verification failed:', verifyRes.status, verifyResponse);
-
-          throw new Error(verifyResponse.message || 'Payment verification failed');
-        }
-
-        // Try to refresh the client-side user profile so UI updates immediately
-        try {
-          const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
-          if (token) {
-            const profileRes = await fetch('/api/v1/user/details', {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-              },
+          console.log('verify params', response);
+          console.log('before verify', headers);
+          //verify payment using payment signature
+          try {
+            const verifyRes = await fetch('/api/v1/payment/verify', {
+              method: 'POST',
+              headers,
+              body: JSON.stringify(response),
             });
-            const profileJson = await profileRes.json();
-            if (profileRes.ok && profileJson && profileJson.data) {
-              localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(profileJson.data));
-              // notify other tabs/components to refresh auth state
+
+            const verifyResponse = await verifyRes.json();
+            console.log('Verify response:', verifyResponse);
+
+            if (!verifyRes.ok || !verifyResponse.success) {
+              console.error('Payment verification failed:', verifyRes.status, verifyResponse);
+              throw new Error(verifyResponse.message || 'Payment verification failed');
+            }
+
+            // Try to refresh the client-side user profile so UI updates immediately
+            const { user } = useAuth();
+            const userDetails = user; // Reuse user details from AuthContext
+            if (userDetails) {
+              localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userDetails));
               window.dispatchEvent(new Event('auth-refresh'));
             }
-          }
-        } catch (e) {
-          console.warn('Failed to refresh profile after payment:', e);
-        }
 
-        if (onSuccess) {
-          onSuccess();
-        } else {
-          window.location.href = `/payment?verification=true`;
-        }
-      },
-      modal: {
-        ondismiss: function () {
-          console.log('Payment modal was closed by user');
-          if (onError) {
-            try {
-              onError(new Error('payment_modal_dismissed'));
-            } catch (e) {
-              console.error('onError callback threw', e);
+            if (onSuccess) {
+              onSuccess();
+              resolve(orderResponse);
+            } else {
+              showToast('Payment successful!', 'success');
+              window.location.href = `/payment?verification=true`;
+              // We don't resolve here as we are navigating away
             }
-          } else if (!onSuccess) {
-            window.location.href = `/payment?verification=false`;
+          } catch (err) {
+            showToast('Payment verification failed', 'error');
           }
         },
-      },
-      theme: { color: '#000000' },
-    };
+        modal: {
+          ondismiss: function () {
+            showToast('Payment cancelled', 'info');
+          },
+        },
+        theme: { color: '#000000' },
+      };
 
-    const Razorpay = (window as any).Razorpay;
-    if (!Razorpay) {
-      throw new Error('Razorpay SDK not loaded');
-    }
-    const rzp = new Razorpay(options);
-    rzp.open();
+      const Razorpay = (window as any).Razorpay;
+      if (!Razorpay) {
+        const error = new Error('Razorpay SDK not loaded');
+        if (onError) onError(error);
+        reject(error);
+        return;
+      }
+      const rzp = new Razorpay(options);
+      rzp.open();
+    });
   } catch (error) {
     if (onError) {
       try {
