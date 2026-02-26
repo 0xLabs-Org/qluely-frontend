@@ -112,7 +112,7 @@ export default function UploadPage() {
                 <div className="text-center mb-10">
                     <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mb-3">Upload Document</h1>
                     <p className="text-zinc-500 dark:text-zinc-400">
-                        Upload your resume or cover letter. Only PDF format is accepted (Max: 5MB).
+                        Upload your document. <br />Only PDF format is accepted (Max: 5MB).
                     </p>
                 </div>
 

@@ -201,15 +201,7 @@ const PricingComponent = ({ id }: PricingProps) => {
   useEffect(() => {
     const accountType = getUserAccountType();
     setUserAccountType(accountType);
-    console.log('User account type:', accountType);
   }, [user]);
-
-  console.log('PricingComponent - Auth state:', {
-    user,
-    isLoading,
-    hasToken: getAuthToken() ? 'yes' : 'no',
-    tokenValue: getAuthToken()?.substring(0, 20) + '...' || 'none',
-  });
 
   return (
     <section

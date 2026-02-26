@@ -41,14 +41,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (token && userData) {
           const parsedUser = JSON.parse(userData);
           setUser(parsedUser);
-          console.log('User authenticated from localStorage:', parsedUser);
+          // console.log('User authenticated from localStorage:', parsedUser);
         } else if (token) {
           // If we have a token but no userData, clear the token
-          console.log('Found token but no userData, clearing token');
+          // console.log('Found token but no userData, clearing token');
           localStorage.removeItem(STORAGE_KEYS.TOKEN);
         }
       } catch (error) {
-        console.error('Error checking auth:', error);
+        // console.error('Error checking auth:', error);
         // Clear invalid data
         localStorage.removeItem(STORAGE_KEYS.TOKEN);
         localStorage.removeItem(STORAGE_KEYS.USER_DATA);
@@ -71,7 +71,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const userData = localStorage.getItem(STORAGE_KEYS.USER_DATA);
         if (userData) {
           const parsed = JSON.parse(userData);
-          console.log('Auth refresh received, updating user from localStorage:', parsed);
+          // console.log('Auth refresh received, updating user from localStorage:', parsed);
           setUser(parsed);
         }
       } catch (e) {
@@ -89,14 +89,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const login = (token: string, userData: User) => {
-    console.log('AuthContext login called with:', {
-      token: token.substring(0, 20) + '...',
-      userData,
-    });
+    // console.log('AuthContext login called with:', {
+    //   token: token.substring(0, 20) + '...',
+    //   userData,
+    // });
     localStorage.setItem(STORAGE_KEYS.TOKEN, token);
     localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
     setUser(userData);
-    console.log('AuthContext login completed, user state updated');
+    // console.log('AuthContext login completed, user state updated');
   };
 
   const logout = () => {
