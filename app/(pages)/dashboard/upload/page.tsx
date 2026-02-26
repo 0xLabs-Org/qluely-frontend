@@ -4,10 +4,8 @@ import React, { useState } from 'react';
 import { UploadCloud, FileText, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useRouter } from 'next/navigation';
-import * as pdfjsLib from 'pdfjs-dist';
+import { useToast } from '@/contexts/ToastContext';
 
-// Use unpkg CDN for the worker to avoid build/configuration issues in Next.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 export default function UploadPage() {
     const [file, setFile] = useState<File | null>(null);
@@ -15,6 +13,7 @@ export default function UploadPage() {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
     const router = useRouter();
+    const { addToast } = useToast();
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -64,6 +63,12 @@ export default function UploadPage() {
         setError(null);
 
         try {
+            // Dynamically import pdfjs-dist only on the client-side to avoid SSR DOMMatrix error
+            const pdfjsLib = await import('pdfjs-dist');
+            if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+            }
+
             // Read and parse PDF client-side
             const arrayBuffer = await file.arrayBuffer();
             const pdfDocument = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -75,28 +80,27 @@ export default function UploadPage() {
                 const pageText = textContent.items.map((item: any) => item.str).join(' ');
                 extractedText += pageText + '\n';
             }
-            console.log({ data: extractedText })
 
             // We send the extracted data to our Next.js proxy
-            // const res = await fetch('/api/v1/user/details', {
-            //     method: 'POST',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //         Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
-            //     },
-            //     body: JSON.stringify({ data: extractedText }),
-            // });
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/user/document/upload`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+                },
+                body: JSON.stringify({ details: extractedText }),
+            });
 
-            // const data = await res.json();
+            const data = await res.json();
 
-            // if (!res.ok) {
-            //     throw new Error(data.message || 'Failed to upload document');
-            // }
+            if (!res.ok) {
+                throw new Error(data.message || 'Failed to upload document');
+            }
 
             setSuccess(true);
-
+            addToast('Document successfully uploaded!', 'success');
         } catch (err: any) {
-            setError(err.message || 'An error occurred during upload.');
+            setError('Please Try Again');
         } finally {
             setUploading(false);
         }
