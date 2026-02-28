@@ -88,3 +88,86 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export async function POST(request: NextRequest) {
+  try {
+    console.log('[USER] POST received for proxying extracted text');
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { success: false, error: true, message: 'Unauthorized' },
+        { status: STATUS.UNAUTHORIZED },
+      );
+    }
+    const token = authHeader.replace('Bearer ', '');
+
+    let decoded: any;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET || '');
+    } catch (err) {
+      console.log('[USER] Token verification failed', err);
+      return NextResponse.json(
+        { success: false, error: true, message: 'Unauthorized' },
+        { status: STATUS.UNAUTHORIZED },
+      );
+    }
+
+    const userId = decoded?.id;
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: true, message: 'Unauthorized' },
+        { status: STATUS.UNAUTHORIZED },
+      );
+    }
+
+    const body = await request.json();
+    const extractedData = body.data;
+
+    if (!extractedData) {
+      return NextResponse.json(
+        { success: false, error: true, message: 'No data provided' },
+        { status: STATUS.BAD_REQUEST }
+      );
+    }
+
+    // Proxy the extracted text to backend
+    const backendUrl = process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:8000';
+    try {
+      const response = await fetch(`${backendUrl}/api/v1/user/details`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ data: extractedData }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        return NextResponse.json(
+          data,
+          { status: response.status }
+        );
+      }
+
+      return NextResponse.json(
+        { success: true, error: false, message: 'Successfully parsed and proxied text to backend', data },
+        { status: STATUS.OK }
+      );
+    } catch (fetchErr) {
+      console.error('[USER] Failed to proxy text to backend:', fetchErr);
+      return NextResponse.json(
+        { success: false, error: true, message: 'Proxy forwarding failed' },
+        { status: STATUS.INTERNAL_SERVER_ERROR }
+      );
+    }
+
+  } catch (error) {
+    console.error('[USER] POST handler error:', error);
+    return NextResponse.json(
+      { success: false, error: true, message: 'Server error processing file' },
+      { status: STATUS.INTERNAL_SERVER_ERROR },
+    );
+  }
+}

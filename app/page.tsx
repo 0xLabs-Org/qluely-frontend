@@ -40,7 +40,7 @@ export default function QluelyLanding() {
         {/* Content */}
         <div className="relative z-10 flex flex-col items-center gap-4 sm:gap-2 text-center max-w-4xl mx-auto">
           <span className="pointer-events-none bg-linear-to-b from-primary to-primary/70 bg-clip-text text-5xl sm:text-5xl md:text-7xl leading-tight font-semibold text-transparent">
-            Undetectable AI
+            AI Copilot
           </span>
 
           <span className="pointer-events-none bg-linear-to-tl from-[#2b8ecc] to-[#2b8ecc]/50 bg-clip-text text-5xl sm:text-5xl md:text-7xl leading-tight font-semibold text-transparent">

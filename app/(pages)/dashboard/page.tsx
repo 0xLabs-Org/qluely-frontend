@@ -241,7 +241,7 @@ export default function DashboardPage() {
 
       {/* 3. Usage Trends (Contextual Insight) */}
       <div className="dash-fade-in dash-fade-in-delay-5">
-        <UsageTrends />
+        <UsageTrends data={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]} />
       </div>
     </div>
   );

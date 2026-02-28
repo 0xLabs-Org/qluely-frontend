@@ -35,6 +35,7 @@
     "lucide-react": "^0.556.0",
     "motion": "^12.27.5",
     "next": "^16.1.1",
+    "pdfjs-dist": "^5.4.624",
     "radix-ui": "^1.4.3",
     "react": "19.2.1",
     "react-dom": "19.2.1",
