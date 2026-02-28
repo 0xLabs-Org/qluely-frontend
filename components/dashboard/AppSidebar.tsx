@@ -7,7 +7,8 @@ import {
     Video,
     LogOut,
     ChevronUp,
-    User2
+    User2,
+    Gift,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
@@ -54,8 +55,12 @@ const items = [
         title: "Billing",
         url: "/dashboard/billing",
         icon: Book,
-    }
-
+    },
+    {
+        title: "Referral",
+        url: "/dashboard/referral",
+        icon: Gift,
+    },
 ];
 
 export function AppSidebar() {
