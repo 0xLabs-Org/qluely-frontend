@@ -11,15 +11,20 @@ import { Switch } from '@/components/ui/switch';
 export default function RegisterPage() {
   const router = useRouter();
   const { login } = useAuth();
-  const [formData, setFormData] = useState({ email: '', password: '', coupon: '' });
+  const [formData, setFormData] = useState({ email: '', password: '', referralCode: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isDesktopSource, setIsDesktopSource] = useState(false);
-  const [coupon, setCoupon] = useState<boolean>(false);
-  // Check if user came from desktop app
+  const [showReferral, setShowReferral] = useState<boolean>(false);
+  // Check if user came from desktop app and pre-fill referral code from URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setIsDesktopSource(params.get('source') === 'desktop');
+    const code = params.get('referralcode') || params.get('referralCode');
+    if (code) {
+      setFormData((prev) => ({ ...prev, referralCode: code.trim().toUpperCase() }));
+      setShowReferral(true);
+    }
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,11 +33,11 @@ export default function RegisterPage() {
     setError('');
 
     try {
-      // Prepare data, excluding empty coupon
+      // Prepare data, excluding empty referral code
       const submitData = {
         email: formData.email,
         password: formData.password,
-        ...(formData.coupon.trim() && { coupon: formData.coupon.trim() }),
+        ...(formData.referralCode.trim() && { referralCode: formData.referralCode.trim().toUpperCase() }),
       };
 
       localStorage.removeItem('token');
@@ -168,28 +173,29 @@ export default function RegisterPage() {
 
           <div>
             <div className="flex justify-between">
-              <label htmlFor="coupon" className="block text-sm font-medium text-gray-700 mb-1">
-                Coupon Code (Optional)
+              <label htmlFor="referralCode" className="block text-sm font-medium text-gray-700 mb-1">
+                Referral Code <span className="text-gray-400 font-normal">(Optional)</span>
               </label>
               <Switch
-                id="coupon-toggle"
-                checked={coupon}
+                id="referral-toggle"
+                checked={showReferral}
                 onCheckedChange={(val) => {
-                  setCoupon(Boolean(val));
-                  if (!val) setFormData((prev) => ({ ...prev, coupon: '' }));
+                  setShowReferral(Boolean(val));
+                  if (!val) setFormData((prev) => ({ ...prev, referralCode: '' }));
                 }}
               />
             </div>
 
-            {coupon && (
+            {showReferral && (
               <input
-                id="coupon"
-                name="coupon"
+                id="referralCode"
+                name="referralCode"
                 type="text"
-                value={formData.coupon}
+                value={formData.referralCode}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter coupon code"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
+                placeholder="Enter referral code (e.g. AB3X9KZ2)"
+                maxLength={16}
               />
             )}
           </div>
